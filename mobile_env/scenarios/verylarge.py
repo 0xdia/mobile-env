@@ -46,4 +46,5 @@ class MComVeryLarge(MComCore):
         ]
 
         super().__init__(stations, edge_servers, ues, config, render_mode)
+        self.edge_servers = edge_servers
         self.users = ues
