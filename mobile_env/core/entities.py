@@ -60,25 +60,32 @@ class UserEquipment:
     def __str__(self):
         return f"UE: {self.ue_id}"
 
+class EdgeInfrastructureProvider:
+    def __init__(self, inp_id) -> None:
+        self.inp_id = inp_id
+        self.bundle = None
+
+    def offer_bundle(self, new=False):
+        if self.bundle == None or new:
+            self.bundle = {
+                "storage": random.randint(1, 1000),  # in GB
+                "cpu": random.randint(1, 230),  # in vCPU
+            }
+        return self.bundle
 
 class EdgeServer:
     def __init__(
-        self, es_id: int, inp_id: int, bs_id: int, loc_x: float, loc_y: float
+        self, es_id: int, inp, bs_id: int, loc_x: float, loc_y: float
     ) -> None:
         self.es_id = es_id
-        self.inp_id = inp_id
+        self.inp = inp
         self.bs_id = bs_id
         self.loc_x = loc_x
         self.loc_y = loc_y
         self.bundle = None
 
     def offer_bundle(self):
-        if self.bundle is None:
-            self.bundle = {
-                "storage": random.randint(1, 1000),  # in GB
-                "cpu": random.randint(1, 230),  # in vCPU
-            }
-        return self.bundle
+        return self.inp.offer_bundle()
 
     def choose_bid_winner(self, bids: List[Tuple[int, int]]):
         # Pay attention to the case of equal bids
