@@ -73,10 +73,11 @@ class EdgeServer:
         self.bundle = None
 
     def offer_bundle(self):
-        self.bundle = {
-            "storage": random.randint(1, 1000),  # in GB
-            "cpu": random.randint(1, 230),  # in vCPU
-        }
+        if self.bundle is None:
+            self.bundle = {
+                "storage": random.randint(1, 1000),  # in GB
+                "cpu": random.randint(1, 230),  # in vCPU
+            }
         return self.bundle
 
     def choose_bid_winner(self, bids: List[Tuple[int, int]]):
