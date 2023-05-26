@@ -1,4 +1,4 @@
-from mobile_env.core.entities import BaseStation, EdgeServer, UserEquipment
+from mobile_env.core.entities import BaseStation, EdgeInfrastructureProvider, EdgeServer, UserEquipment
 from mobile_env.scenarios.verylarge import MComVeryLarge
 import random
 
@@ -13,16 +13,19 @@ sps = [[] for _ in range(NUM_SPs)]
 for user in scenario.users:
     sps[random.randint(0, NUM_SPs-1)].append(user.ue_id)
 
-inps = [0 for _ in range(NUM_InPs)]
+inps = [EdgeInfrastructureProvider(_) for _ in range(NUM_InPs)]
 # attribute edge servers to inps
 for es in scenario.edge_servers:
     random_inp = random.randint(0, NUM_InPs-1)
-    es.inp_id = random_inp
-    inps[random_inp] += 1
+    es.inp = inps[random_inp]
+
+# each edge server / inp offers a bundle
+for es in scenario.edge_servers:
+    es.offer_bundle()
+
 
 for t in range(TIME):
-    # generate tasks from users
+    
     # send tasks for corresponding service providers / network states
-    # send bundle offers from inps for sps
     # sps bid for InPs
     pass
