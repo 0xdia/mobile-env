@@ -23,10 +23,6 @@ class BaseStation:
         self.tx_power = tx  # in dBm
         self.height = height  # in m
 
-    @property
-    def point(self):
-        return Point(int(self.x), int(self.y))
-
     def __str__(self):
         return f"BS: {self.bs_id}"
 
@@ -53,9 +49,6 @@ class UserEquipment:
         self.stime: int = None
         self.extime: int = None
 
-    @property
-    def point(self):
-        return Point(int(self.x), int(self.y))
 
     def generate_task(self):
         self.task = Task(
@@ -105,12 +98,19 @@ class EdgeServer:
 
 
 class ServiceProvider:
-    def __init__(self, sp_id: int, U: int, R: int):
+    def __init__(self, sp_id: int, budget: float, U: int, R: int, subscription_fee):
         self.sp_id = sp_id
+        self.Budget = budget
         self.U = U  # maximum number of user to consider at a timestamp
         self.R = R  # maximum number of bundle offers to consider for a timeslot
+        self.subscription_fee = subscription_fee
+        self.users = []
 
-    def decide(self):
+    def subscribe(self, ue):
+        self.Budget += self.subscription_fee
+        self.users.append(ue)
+
+    def bid(self):
         # greedy
         # a3c
         pass
