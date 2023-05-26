@@ -57,8 +57,18 @@ class UserEquipment:
     def point(self):
         return Point(int(self.x), int(self.y))
 
+    def generate_task(self):
+        self.task = Task(
+            self.ue_id,
+            random.randint(1, 16),
+            random.randint(1, 128),
+            random.randint(1, 200),
+        )
+        return self.task
+
     def __str__(self):
         return f"UE: {self.ue_id}"
+
 
 class EdgeInfrastructureProvider:
     def __init__(self, inp_id) -> None:
@@ -73,10 +83,9 @@ class EdgeInfrastructureProvider:
             }
         return self.bundle
 
+
 class EdgeServer:
-    def __init__(
-        self, es_id: int, inp, bs_id: int, loc_x: float, loc_y: float
-    ) -> None:
+    def __init__(self, es_id: int, inp, bs_id: int, loc_x: float, loc_y: float) -> None:
         self.es_id = es_id
         self.inp = inp
         self.bs_id = bs_id
@@ -93,6 +102,18 @@ class EdgeServer:
 
     def __str__(self) -> str:
         return f"ES: {self.es_id}"
+
+
+class ServiceProvider:
+    def __init__(self, sp_id: int, U: int, R: int):
+        self.sp_id = sp_id
+        self.U = U  # maximum number of user to consider at a timestamp
+        self.R = R  # maximum number of bundle offers to consider for a timeslot
+
+    def decide(self):
+        # greedy
+        # a3c
+        pass
 
 
 class Task:
