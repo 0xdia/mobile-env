@@ -60,7 +60,7 @@ class MComVeryLarge(MComCore):
         ues = []
         for _ in range(len(df)):
             ue = UserEquipment(_, **config["ue"])
-            ue.x, ue.y = df.iat[_, 0], df.iat[_, 1]
+            ue.x, ue.y = df.iat[_, 1], df.iat[_, 2]
             ues.append(ue)
 
         super().__init__(stations, edge_servers, ues, config, render_mode)
