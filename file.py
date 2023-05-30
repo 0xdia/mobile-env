@@ -54,5 +54,5 @@ obs, info = env.reset()
 
 for t in range(TIME):
     # send tasks for corresponding service providers / network states
-    # Sps bid for InPs
+    # Sps bid for InPs ==> action space
     pass

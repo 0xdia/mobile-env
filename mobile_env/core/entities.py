@@ -24,6 +24,10 @@ class BaseStation:
         self.height = height  # in m
         self.edge_servers = []
 
+    @property
+    def point(self):
+        return Point(int(self.x), int(self.y))
+    
     def add_edge_server(self, es_id: int):
         self.edge_servers.append(es_id)
 
@@ -53,6 +57,10 @@ class UserEquipment:
         self.stime: int = None
         self.extime: int = None
 
+    @property
+    def point(self):
+        return Point(int(self.x), int(self.y))
+    
     def generate_task(self):
         self.task = Task(
             self.ue_id,

@@ -72,10 +72,8 @@ class MComVeryLarge(MComCore):
 
     def reset(self, *, seed=None, options=None):
         gym.Env.reset(self, seed=seed)
-
         # reset time
         self.time = 0.0
-
         # set seed
         if seed is not None:
             self.seeding({"seed": seed})

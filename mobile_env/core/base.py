@@ -210,16 +210,16 @@ class MComCore(gym.Env):
         self.utility.reset()
 
         # generate new arrival and exit times for UEs
-        for ue in self.users.values():
+        for ue in self.users:
             ue.stime = self.arrival.arrival(ue)
             ue.extime = self.arrival.departure(ue)
 
         # generate new initial positons of UEs
-        for ue in self.users.values():
+        for ue in self.users:
             ue.x, ue.y = self.movement.initial_position(ue)
 
         # initially not all UEs request downlink connections (service)
-        self.active = [ue for ue in self.users.values() if ue.stime <= 0]
+        self.active = [ue for ue in self.users if ue.stime <= 0]
         self.active = sorted(self.active, key=lambda ue: ue.ue_id)
 
         # reset established downlink connections (default empty set)
@@ -230,7 +230,7 @@ class MComCore(gym.Env):
         self.utilities = {}
 
         # set time of last UE's departure
-        self.max_departure = max(ue.extime for ue in self.users.values())
+        self.max_departure = max(ue.extime for ue in self.users)
 
         # reset episode's results of metrics tracked by the monitor
         self.monitor.reset()
@@ -269,7 +269,7 @@ class MComCore(gym.Env):
 
     def available_connections(self, ue: UserEquipment) -> Set:
         """Returns set of what base stations users could connect to."""
-        stations = self.stations.values()
+        stations = self.stations
         return {bs for bs in stations if self.check_connectivity(bs, ue)}
 
     def update_connections(self) -> None:
@@ -296,7 +296,7 @@ class MComCore(gym.Env):
 
         # update connections' data rates after re-scheduling
         self.datarates = {}
-        for bs in self.stations.values():
+        for bs in self.stations:
             drates = self.station_allocation(bs)
             self.datarates.update(drates)
 
@@ -333,14 +333,14 @@ class MComCore(gym.Env):
         self.active = sorted(
             [
                 ue
-                for ue in self.users.values()
+                for ue in self.users
                 if ue.extime > self.time and ue.stime <= self.time
             ],
             key=lambda ue: ue.ue_id,
         )
 
         # update the data rate of each (BS, UE) connection after movement
-        for bs in self.stations.values():
+        for bs in self.stations:
             drates = self.station_allocation(bs)
             self.datarates.update(drates)
 
@@ -411,7 +411,7 @@ class MComCore(gym.Env):
             / len(self.connections[bs])
             if self.connections[bs]
             else idle
-            for bs in self.stations.values()
+            for bs in self.stations
         }
 
         return util
@@ -421,7 +421,7 @@ class MComCore(gym.Env):
         isolines = {}
         config = self.default_config()["ue"]
 
-        for bs in self.stations.values():
+        for bs in self.stations:
             isolines[bs] = self.channel.isoline(
                 bs, config, (self.width, self.height), drate
             )
@@ -431,7 +431,7 @@ class MComCore(gym.Env):
     def features(self) -> Dict[int, Dict[str, np.ndarray]]:
         # fix ordering of BSs for observations
         stations = sorted(
-            [bs for bs in self.stations.values()], key=lambda bs: bs.bs_id
+            [bs for bs in self.stations], key=lambda bs: bs.bs_id
         )
 
         # compute average utility of each basestation's connections
@@ -512,7 +512,7 @@ class MComCore(gym.Env):
             }
 
         # define dummy observations for non-active UEs
-        idle_ues = set(self.users.values()) - set(self.active)
+        idle_ues = set(self.users) - set(self.active)
         obs = {ue.ue_id: dummy_features(ue) for ue in idle_ues}
         obs.update({ue.ue_id: ue_features(ue) for ue in self.active})
 
@@ -640,7 +640,7 @@ class MComCore(gym.Env):
             )
             ax.annotate(ue.ue_id, xy=(ue.point.x, ue.point.y), ha="center", va="center")
 
-        for bs in self.stations.values():
+        for bs in self.stations:
             # plot BS symbol and annonate by its BS ID
             ax.plot(
                 bs.point.x,
@@ -664,7 +664,7 @@ class MComCore(gym.Env):
             ax.scatter(*self.conn_isolines[bs], color="gray", s=3)
             ax.scatter(*self.mb_isolines[bs], color="black", s=3)
 
-        for bs in self.stations.values():
+        for bs in self.stations:
             for ue in self.connections[bs]:
                 # color is connection's contribution to the UE's total utility
                 share = self.datarates[(bs, ue)] / self.macro[ue]
