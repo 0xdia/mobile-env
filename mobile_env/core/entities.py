@@ -23,10 +23,6 @@ class BaseStation:
         self.tx_power = tx  # in dBm
         self.height = height  # in m
 
-    @property
-    def point(self):
-        return Point(int(self.x), int(self.y))
-
     def __str__(self):
         return f"BS: {self.bs_id}"
 
@@ -53,12 +49,19 @@ class UserEquipment:
         self.stime: int = None
         self.extime: int = None
 
-    @property
-    def point(self):
-        return Point(int(self.x), int(self.y))
+
+    def generate_task(self):
+        self.task = Task(
+            self.ue_id,
+            random.randint(1, 16),
+            random.randint(1, 128),
+            random.randint(1, 200),
+        )
+        return self.task
 
     def __str__(self):
         return f"UE: {self.ue_id}"
+
 
 class EdgeInfrastructureProvider:
     def __init__(self, inp_id) -> None:
@@ -71,12 +74,12 @@ class EdgeInfrastructureProvider:
                 "storage": random.randint(1, 1000),  # in GB
                 "cpu": random.randint(1, 230),  # in vCPU
             }
+            print("bundle offered")
         return self.bundle
 
+
 class EdgeServer:
-    def __init__(
-        self, es_id: int, inp, bs_id: int, loc_x: float, loc_y: float
-    ) -> None:
+    def __init__(self, es_id: int, inp, bs_id: int, loc_x: float, loc_y: float) -> None:
         self.es_id = es_id
         self.inp = inp
         self.bs_id = bs_id
@@ -85,7 +88,8 @@ class EdgeServer:
         self.bundle = None
 
     def offer_bundle(self):
-        return self.inp.offer_bundle()
+        self.bundle = self.inp.offer_bundle()
+        return self.bundle
 
     def choose_bid_winner(self, bids: List[Tuple[int, int]]):
         # Pay attention to the case of equal bids
@@ -93,6 +97,25 @@ class EdgeServer:
 
     def __str__(self) -> str:
         return f"ES: {self.es_id}"
+
+
+class ServiceProvider:
+    def __init__(self, sp_id: int, budget: float, U: int, R: int, subscription_fee):
+        self.sp_id = sp_id
+        self.Budget = budget
+        self.U = U  # maximum number of user to consider at a timestamp
+        self.R = R  # maximum number of bundle offers to consider for a timeslot
+        self.subscription_fee = subscription_fee
+        self.users = []
+
+    def subscribe(self, ue):
+        self.Budget += self.subscription_fee
+        self.users.append(ue)
+
+    def bid(self):
+        # greedy
+        # a3c
+        pass
 
 
 class Task:
