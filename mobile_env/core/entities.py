@@ -22,6 +22,10 @@ class BaseStation:
         self.frequency = freq  # in MHz
         self.tx_power = tx  # in dBm
         self.height = height  # in m
+        self.edge_servers = []
+
+    def add_edge_server(self, es_id: int):
+        self.edge_servers.append(es_id)
 
     def __str__(self):
         return f"BS: {self.bs_id}"
@@ -74,7 +78,6 @@ class EdgeInfrastructureProvider:
                 "storage": random.randint(1, 1000),  # in GB
                 "cpu": random.randint(1, 230),  # in vCPU
             }
-            print("bundle offered")
         return self.bundle
 
 
