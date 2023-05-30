@@ -1,10 +1,11 @@
-from mobile_env.core.base import MComCore
-from mobile_env.core.entities import EdgeServer, UserEquipment, BaseStation
-from mobile_env.core.util import deep_dict_merge
-
-import pandas
 import random
 
+import gymnasium as gym
+import pandas
+
+from mobile_env.core.base import MComCore
+from mobile_env.core.entities import BaseStation, EdgeServer, UserEquipment
+from mobile_env.core.util import deep_dict_merge
 
 
 class MComVeryLarge(MComCore):
@@ -38,7 +39,13 @@ class MComVeryLarge(MComCore):
             "~/repos/mobile-env/mobile_env/scenarios/very_large/site-optus-melbCBD.csv"
         ).iloc[1:, :3]
         edge_servers = [
-            EdgeServer(df.iat[_, 0], 0, random.randint(0, len(stations)-1), df.iat[_, 1], df.iat[_, 2])
+            EdgeServer(
+                df.iat[_, 0],
+                0,
+                random.randint(0, len(stations) - 1),
+                df.iat[_, 1],
+                df.iat[_, 2],
+            )
             for _ in range(len(df))
         ]
 
@@ -51,8 +58,11 @@ class MComVeryLarge(MComCore):
         ues = [UserEquipment(ue_id, **config["ue"]) for ue_id in range(len(df))]
 
         super().__init__(stations, edge_servers, ues, config, render_mode)
-        
+
         # @TODO: cleaning needed, verify this class and the mother class
         self.stations = stations
         self.edge_servers = edge_servers
         self.users = ues
+
+    def reset(self, *, seed=None, options=None):
+        gym.Env.reset(self, seed=seed, options=options)

@@ -1,7 +1,7 @@
-from typing import Tuple, List
+import random
+from typing import List, Tuple
 
 from shapely.geometry import Point
-import random
 
 
 class BaseStation:
@@ -52,7 +52,6 @@ class UserEquipment:
         self.y: float = None
         self.stime: int = None
         self.extime: int = None
-
 
     def generate_task(self):
         self.task = Task(
