@@ -74,6 +74,7 @@ class EdgeInfrastructureProvider:
                 "storage": random.randint(1, 1000),  # in GB
                 "cpu": random.randint(1, 230),  # in vCPU
             }
+            print("bundle offered")
         return self.bundle
 
 
@@ -87,7 +88,8 @@ class EdgeServer:
         self.bundle = None
 
     def offer_bundle(self):
-        return self.inp.offer_bundle()
+        self.bundle = self.inp.offer_bundle()
+        return self.bundle
 
     def choose_bid_winner(self, bids: List[Tuple[int, int]]):
         # Pay attention to the case of equal bids
