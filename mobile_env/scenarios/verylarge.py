@@ -11,7 +11,7 @@ class MComVeryLarge(MComCore):
         config = deep_dict_merge(self.default_config(), config)
 
         df = pandas.read_csv(
-            "~/repos/mobile-env/mobile_env/scenarios/very_large/site.csv"
+            "~/repos/mobile-env/mobile_env/scenarios/very_large/site-optus-melbCBD.csv"
         ).iloc[1:, :3]
         edge_servers = [
             EdgeServer(df.iat[_, 0], 0, 0, df.iat[_, 1], df.iat[_, 2])
