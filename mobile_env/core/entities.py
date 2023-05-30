@@ -27,7 +27,7 @@ class BaseStation:
     @property
     def point(self):
         return Point(int(self.x), int(self.y))
-    
+
     def add_edge_server(self, es_id: int):
         self.edge_servers.append(es_id)
 
@@ -60,7 +60,7 @@ class UserEquipment:
     @property
     def point(self):
         return Point(int(self.x), int(self.y))
-    
+
     def generate_task(self):
         self.task = Task(
             self.ue_id,
@@ -89,10 +89,10 @@ class EdgeInfrastructureProvider:
 
 
 class EdgeServer:
-    def __init__(self, es_id: int, inp, bs_id: int, loc_x: float, loc_y: float) -> None:
+    def __init__(self, es_id: int, inp, loc_x: float, loc_y: float) -> None:
         self.es_id = es_id
         self.inp = inp
-        self.bs_id = bs_id
+        self.bs_id = None
         self.loc_x = loc_x
         self.loc_y = loc_y
         self.bundle = None

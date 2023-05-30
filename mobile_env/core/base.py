@@ -430,9 +430,7 @@ class MComCore(gym.Env):
 
     def features(self) -> Dict[int, Dict[str, np.ndarray]]:
         # fix ordering of BSs for observations
-        stations = sorted(
-            [bs for bs in self.stations], key=lambda bs: bs.bs_id
-        )
+        stations = sorted([bs for bs in self.stations], key=lambda bs: bs.bs_id)
 
         # compute average utility of each basestation's connections
         bs_utilities = self.station_utilities()
