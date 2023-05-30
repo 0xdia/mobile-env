@@ -62,5 +62,5 @@ class MComCentralHandler(Handler):
     def check(cls, env):
         assert [
             ue.stime <= 0.0 and ue.extime >= env.EP_MAX_TIME
-            for ue in env.users.values()
+            for ue in env.users
         ], "Central environment cannot handle a changing number of UEs."
