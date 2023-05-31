@@ -71,7 +71,7 @@ class MComVeryLarge(MComCore):
             stations[clustring[i]].add_edge_server(edge_servers[i].es_id)
 
         df = pandas.read_csv(
-            "~/repos/mobile-env/mobile_env/scenarios/very_large/users-aus.csv"
+            "~/repos/mobile-env/mobile_env/scenarios/very_large/users-melbcbd-generated.csv"
         ).iloc[1:, 1:3]
         ues = []
         for _ in range(len(df)):
@@ -85,9 +85,13 @@ class MComVeryLarge(MComCore):
             )
             for _ in range(self.NUM_SPs)
         ]
+
         # attribute users to service providers
         for user in ues:
             sps[random.randint(0, self.NUM_SPs - 1)].subscribe(user)
+
+        for ue in ues:
+            print(ue.x, ue.y)
 
         super().__init__(stations, edge_servers, ues, config, render_mode)
 
@@ -107,12 +111,6 @@ class MComVeryLarge(MComCore):
         # initialize RNG or reset (if necessary on episode end)
         if self.reset_rng_episode or self.rng is None:
             self.rng = np.random.default_rng(self.seed)
-
-        # extra options currently not supported
-        if options is not None:
-            raise NotImplementedError(
-                "Passing extra options on env.reset() is not supported."
-            )
 
         # reset state kept by arrival pattern, channel, scheduler, etc.
         self.arrival.reset()

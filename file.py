@@ -20,7 +20,7 @@ for bs in env.stations:
     for es in env.edge_servers:
         continue
 
-# obs, info = env.reset()
+obs, info = env.reset()
 
 TIME = 100000  # timestamps
 for t in range(TIME):
