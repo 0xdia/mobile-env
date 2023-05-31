@@ -4,11 +4,17 @@ from collections import defaultdict
 import gymnasium as gym
 import numpy as np
 import pandas
-from numpy import unique, where
+from numpy import unique
 from sklearn.cluster import KMeans
 
 from mobile_env.core.base import MComCore
-from mobile_env.core.entities import BaseStation, EdgeServer, UserEquipment
+from mobile_env.core.entities import (
+    BaseStation,
+    EdgeServer,
+    ServiceProvider,
+    UserEquipment,
+    EdgeInfrastructureProvider,
+)
 from mobile_env.core.util import deep_dict_merge
 
 
@@ -17,7 +23,9 @@ class MComVeryLarge(MComCore):
         # set unspecified parameters to default configuration
         config = deep_dict_merge(self.default_config(), config)
         num_of_bs = 13
-        
+        self.NUM_SPs = 10  # service providers
+        self.NUM_InPs = 10  # edge infrastructure providers
+
         # @DONE: cluster edge server arounf base stations according to their locations
         df = pandas.read_csv(
             "~/repos/mobile-env/mobile_env/scenarios/very_large/site-optus-melbCBD.csv"
@@ -32,12 +40,21 @@ class MComVeryLarge(MComCore):
             for _ in range(len(df))
         ]
 
+        inps = [EdgeInfrastructureProvider(_) for _ in range(self.NUM_InPs)]
+        # attribute edge servers to inps
+        for es in edge_servers:
+            random_inp = random.randint(0, self.NUM_InPs - 1)
+            es.inp = inps[random_inp]
+
+        # each edge server / inp offers a bundle
+        for es in edge_servers:
+            es.offer_bundle()
+
         # determining base station locations
         df = pandas.DataFrame(df).to_numpy()
         model = KMeans(n_clusters=num_of_bs)
         model.fit(df)
         clustring = model.predict(df)
-        server_clusters = unique(clustring)
 
         stations = [
             BaseStation(
@@ -49,10 +66,9 @@ class MComVeryLarge(MComCore):
         ]
 
         # attribute edge servers to base stations
-        for server_cluster in range(num_of_bs):
-            for server in server_clusters:
-                edge_servers[server].bs_id = server_cluster
-                stations[server_cluster].add_edge_server(server)
+        for i in range(len(edge_servers)):
+            edge_servers[i].bs_id = clustring[i]
+            stations[clustring[i]].add_edge_server(edge_servers[i].es_id)
 
         df = pandas.read_csv(
             "~/repos/mobile-env/mobile_env/scenarios/very_large/users-aus.csv"
@@ -62,6 +78,16 @@ class MComVeryLarge(MComCore):
             ue = UserEquipment(_, **config["ue"])
             ue.x, ue.y = df.iat[_, 0], df.iat[_, 1]
             ues.append(ue)
+
+        sps = [
+            ServiceProvider(
+                _, random.randint(1000, 10000), 100, 50, random.randint(1, 5)
+            )
+            for _ in range(self.NUM_SPs)
+        ]
+        # attribute users to service providers
+        for user in ues:
+            sps[random.randint(0, self.NUM_SPs - 1)].subscribe(user)
 
         super().__init__(stations, edge_servers, ues, config, render_mode)
 
