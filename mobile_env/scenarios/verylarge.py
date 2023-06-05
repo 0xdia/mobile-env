@@ -72,7 +72,7 @@ class MComVeryLarge(MComCore):
 
         df = pandas.read_csv(
             "~/repos/mobile-env/mobile_env/scenarios/very_large/users-melbcbd-generated.csv"
-        ).iloc[1:, 1:3]
+        ).iloc[1:, 0:3]
         ues = []
         for _ in range(len(df)):
             ue = UserEquipment(_, **config["ue"])
@@ -89,9 +89,6 @@ class MComVeryLarge(MComCore):
         # attribute users to service providers
         for user in ues:
             sps[random.randint(0, self.NUM_SPs - 1)].subscribe(user)
-
-        for ue in ues:
-            print(ue.x, ue.y)
 
         super().__init__(stations, edge_servers, ues, config, render_mode)
 
