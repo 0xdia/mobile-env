@@ -14,17 +14,15 @@ df = pd.read_csv(
 colors = cm.rainbow(np.linspace(0, 1, 13))
 
 fig, ax = plt.subplots()
-# ax.scatter(df.LONGITUDE, df.LATITUDE, color=c)
 
 newdf = pd.DataFrame(df).to_numpy()
 model = KMeans(n_clusters=13)
 model.fit(newdf)
 yhat = model.predict(newdf)
 clusters = unique(yhat)
-
 for cluster in clusters:
-	row_ix = where(yhat == cluster)
-	ax.scatter(newdf[row_ix, 1], newdf[row_ix, 0], color=colors[cluster])
+    row_ix = where(yhat == cluster)
+    ax.scatter(newdf[row_ix, 1], newdf[row_ix, 0], color=colors[cluster])
 
 ax.scatter(model.cluster_centers_[:, 1], model.cluster_centers_[:, 0], color="black")
 
@@ -36,8 +34,14 @@ ax.set_aspect("equal")
 
 
 ax.set_title("Edge servers, Base stations")
-ax.set_xlim(min(model.cluster_centers_[:, 1].min(), df.LONGITUDE.min()), max(model.cluster_centers_[:, 1].max(), df.LONGITUDE.max()))
-ax.set_ylim(min(model.cluster_centers_[:, 0].min(), df.LATITUDE.min()), max(model.cluster_centers_[:, 0].max(), df.LATITUDE.max()))
+ax.set_xlim(
+    min(model.cluster_centers_[:, 1].min(), df.LONGITUDE.min()),
+    max(model.cluster_centers_[:, 1].max(), df.LONGITUDE.max()),
+)
+ax.set_ylim(
+    min(model.cluster_centers_[:, 0].min(), df.LATITUDE.min()),
+    max(model.cluster_centers_[:, 0].max(), df.LATITUDE.max()),
+)
 
 
 plt.show()
