@@ -32,15 +32,23 @@ for xi, yi in zip(model.cluster_centers_[:, 1], model.cluster_centers_[:, 0]):
     ax.add_patch(circle)
 ax.set_aspect("equal")
 
+ue = (
+    pd.read_csv(
+        "~/repos/mobile-env/mobile_env/scenarios/very_large/users-melbcbd-generated.csv"
+    )
+    .iloc[1:, 0:3]
+    .to_numpy()
+)
+ax.scatter(ue[:, 1], ue[:, 0], color="grey")
 
-ax.set_title("Edge servers, Base stations")
+ax.set_title("Edge servers, Base stations, Users")
 ax.set_xlim(
-    min(model.cluster_centers_[:, 1].min(), df.LONGITUDE.min()),
-    max(model.cluster_centers_[:, 1].max(), df.LONGITUDE.max()),
+    min(model.cluster_centers_[:, 1].min(), df.LONGITUDE.min(), ue[:, 1].min()),
+    max(model.cluster_centers_[:, 1].max(), df.LONGITUDE.max(), ue[:, 1].max()),
 )
 ax.set_ylim(
-    min(model.cluster_centers_[:, 0].min(), df.LATITUDE.min()),
-    max(model.cluster_centers_[:, 0].max(), df.LATITUDE.max()),
+    min(model.cluster_centers_[:, 0].min(), df.LATITUDE.min(), ue[:, 0].min()),
+    max(model.cluster_centers_[:, 0].max(), df.LATITUDE.max(), ue[:, 0].max()),
 )
 
 
