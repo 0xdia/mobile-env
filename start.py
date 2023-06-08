@@ -22,7 +22,7 @@ for bs in env.stations:
 
 obs, info = env.reset()
 
-TIME = 100000  # timestamps
+TIME = 6  # timestamps
 for t in range(TIME):
     # send tasks for corresponding service providers / network states
     # Sps bid for InPs ==> action space

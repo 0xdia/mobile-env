@@ -22,6 +22,7 @@ class MComVeryLarge(MComCore):
     def __init__(self, config={}, render_mode=None):
         # set unspecified parameters to default configuration
         config = deep_dict_merge(self.default_config(), config)
+        config["ue"]["velocity"] = 0
         num_of_bs = 13
         self.NUM_SPs = 10  # service providers
         self.NUM_InPs = 10  # edge infrastructure providers
