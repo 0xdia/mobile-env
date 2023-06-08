@@ -17,6 +17,8 @@ class MComCentralHandler(Handler):
     def action_space(cls, env) -> spaces.MultiDiscrete:
         # define multi-discrete action space for central setting
         # each element of a multi-discrete action denotes one UE's decision
+        # TODO: 1. pay attention to the four loop
+        #       2. change the action space
         return spaces.MultiDiscrete([env.NUM_STATIONS + 1 for _ in env.users])
 
     @classmethod

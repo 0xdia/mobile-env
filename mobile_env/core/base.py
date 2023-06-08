@@ -291,8 +291,9 @@ class MComCore(gym.Env):
         self.update_connections()
 
         # TODO: add penalties for changing connections?
-        for ue_id, action in actions.items():
-            self.apply_action(action, self.users[ue_id])
+        # TODO: check the if code is optimal
+        for ue, action in actions.items():
+            self.apply_action(action, self.users[ue.ue_id])
 
         # update connections' data rates after re-scheduling
         self.datarates = {}
