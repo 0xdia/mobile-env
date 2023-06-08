@@ -32,7 +32,7 @@ class MComCentralHandler(Handler):
             env.users
         ), "Number of actions must equal overall UEs."
 
-        users = sorted(env.users)
+        users = sorted(env.users, key=lambda x: x.ue_id)
         return {ue_id: action for ue_id, action in zip(users, actions)}
 
     @classmethod

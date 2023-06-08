@@ -26,4 +26,5 @@ TIME = 100000  # timestamps
 for t in range(TIME):
     # send tasks for corresponding service providers / network states
     # Sps bid for InPs ==> action space
-    pass
+    dummy_action = env.action_space.sample()
+    obs, reward, terminated, truncated, info = env.step(dummy_action)
