@@ -41,15 +41,7 @@ class MComVeryLarge(MComCore):
             for _ in range(len(df))
         ]
 
-        inps = [EdgeInfrastructureProvider(_) for _ in range(self.NUM_InPs)]
-        # attribute edge servers to inps
-        for es in edge_servers:
-            random_inp = random.randint(0, self.NUM_InPs - 1)
-            es.inp = inps[random_inp]
-
-        # each edge server / inp offers a bundle
-        for es in edge_servers:
-            es.offer_bundle()
+        self.inps = [EdgeInfrastructureProvider(_) for _ in range(self.NUM_InPs)]
 
         # determining base station locations
         df = pandas.DataFrame(df).to_numpy()
@@ -74,29 +66,25 @@ class MComVeryLarge(MComCore):
         df = pandas.read_csv(
             "~/repos/mobile-env/mobile_env/scenarios/very_large/users-melbcbd-generated.csv"
         ).iloc[1:, 0:3]
-        ues = []
+        self.ues = []
         for _ in range(len(df)):
             ue = UserEquipment(_, **config["ue"])
             ue.x, ue.y = df.iat[_, 0], df.iat[_, 1]
-            ues.append(ue)
+            self.ues.append(ue)
 
-        sps = [
+        self.sps = [
             ServiceProvider(
                 _, random.randint(1000, 10000), 100, 50, random.randint(1, 5)
             )
             for _ in range(self.NUM_SPs)
         ]
 
-        # attribute users to service providers
-        for user in ues:
-            sps[random.randint(0, self.NUM_SPs - 1)].subscribe(user)
-
-        super().__init__(stations, edge_servers, ues, config, render_mode)
+        super().__init__(stations, edge_servers, self.ues, config, render_mode)
 
         # @TODO: cleaning needed, verify this class and the mother class
         self.stations = stations
         self.edge_servers = edge_servers
-        self.users = ues
+        self.users = self.ues
 
     def reset(self, *, seed=None, options=None):
         gym.Env.reset(self, seed=seed)
@@ -148,5 +136,19 @@ class MComVeryLarge(MComCore):
         info = self.handler.info(self)
         # store latest monitored results in `info` dictionary
         info = {**info, **self.monitor.info()}
+
+        # attribute edge servers to inps
+        for es in self.edge_servers:
+            random_inp = random.randint(0, self.NUM_InPs - 1)
+            es.inp = self.inps[random_inp]
+            self.inps[random_inp].edge_servers.append(es)
+
+        # each edge server / inp offers a bundle
+        for es in self.edge_servers:
+            es.offer_bundle()
+
+        # attribute users to service providers
+        for user in self.ues:
+            self.sps[random.randint(0, self.NUM_SPs - 1)].subscribe(user)
 
         return self.handler.observation(self), info

@@ -78,12 +78,13 @@ class EdgeInfrastructureProvider:
     def __init__(self, inp_id) -> None:
         self.inp_id = inp_id
         self.bundle = None
+        self.edge_servers = []
 
     def offer_bundle(self, new=False):
         if self.bundle == None or new:
             self.bundle = {
-                "storage": random.randint(1, 1000),  # in GB
-                "cpu": random.randint(1, 230),  # in vCPU
+                "storage (GB)": random.randint(1, 1000),  # in GB
+                "vCPU": random.randint(1, 416),  # in vCPU
             }
         return self.bundle
 
