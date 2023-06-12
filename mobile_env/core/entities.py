@@ -57,6 +57,7 @@ class UserEquipment:
         self.stime: int = None
         self.extime: int = None
         self.task = None
+        self.current_sp = None
 
     @property
     def point(self):
@@ -85,7 +86,7 @@ class EdgeInfrastructureProvider:
     def offer_bundle(self, new=False):
         if self.bundle == None or new:
             self.bundle = {
-                "storage (GB)": random.randint(1, 1000),  # in GB
+                "storage": random.randint(1, 1000),  # in GB
                 "vCPU": random.randint(1, 416),  # in vCPU
             }
         return self.bundle

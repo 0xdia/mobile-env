@@ -23,9 +23,15 @@ class MComCentralHandler(Handler):
 
     @classmethod
     def observation_space(cls, env) -> spaces.Box:
-        # observation is a single vector of concatenated UE representations
-        size = cls.ue_obs_size(env)
-        return spaces.Box(low=-1.0, high=1.0, shape=(env.NUM_USERS * size,))
+        # look at the overleaf presentation for details about the state space.
+        # size = cls.ue_obs_size(env)
+        # return spaces.Box(low=-1.0, high=1.0, shape=(env.NUM_USERS * size,))
+        return spaces.Dict(
+            {
+                "bundles": spaces.Box(low=0, high=99999, shape=(10, 3), dtype=np.int32),
+                "tasks": spaces.Box(low=0, high=850, shape=(815, 4), dtype=np.int32),
+            }
+        )
 
     @classmethod
     def action(cls, env, actions: Tuple[int]) -> Dict[int, int]:

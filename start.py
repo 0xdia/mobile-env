@@ -27,16 +27,13 @@ for inp in env.inps:
 
 print("\n[*] SPs' budgets and pricing:")
 for sp in env.sps:
-    print(f"     Initial budget: {sp.Budget} $, subscription fee: {sp.subscription_fee} $")
+    print(
+        f"     Initial budget: {sp.Budget} $, subscription fee: {sp.subscription_fee} $"
+    )
 
 print("\n[*] Users per SP:")
 for sp in env.sps:
     print(f"     SP: {sp.sp_id}, number of users: {len(sp.users)}")
 
-
-TIME = 0  # timestamps
-for t in range(TIME):
-    # send tasks for corresponding service providers / network states
-    # Sps bid for InPs ==> action space
-    dummy_action = env.action_space.sample()
-    obs, reward, terminated, truncated, info = env.step(dummy_action)
+print("\n[*] Observation of SP 0:")
+print(obs)
