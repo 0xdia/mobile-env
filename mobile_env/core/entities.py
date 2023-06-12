@@ -56,18 +56,20 @@ class UserEquipment:
         self.y: float = None
         self.stime: int = None
         self.extime: int = None
+        self.task = None
 
     @property
     def point(self):
         return Point(int(self.x), int(self.y))
 
-    def generate_task(self):
-        self.task = Task(
-            self.ue_id,
-            random.randint(1, 16),
-            random.randint(1, 128),
-            random.randint(1, 200),
-        )
+    def generate_task(self, new=True):
+        if new or self.task == None:
+            self.task = Task(
+                self.ue_id,
+                random.randint(1, 16),
+                random.randint(1, 128),
+                random.randint(1, 200),
+            )
         return self.task
 
     def __str__(self):
