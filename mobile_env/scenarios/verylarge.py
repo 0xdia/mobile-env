@@ -148,7 +148,44 @@ class MComVeryLarge(MComCore):
             es.offer_bundle()
 
         # attribute users to service providers
-        for user in self.ues:
-            self.sps[random.randint(0, self.NUM_SPs - 1)].subscribe(user)
+        for user in self.users:
+            random_sp = random.randint(0, self.NUM_SPs - 1)
+            self.sps[random_sp].subscribe(user)
+            user.current_sp = random_sp
 
-        return self.handler.observation(self), info
+        # generate tasks on UEs
+        for ue in self.users:
+            ue.generate_task()
+
+        # return self.handler.observation(self), info
+
+        bundles_shape = (10, 3)
+        tasks_shape = (815, 4)
+
+        bundles = []
+        for inp in self.inps:
+            bundles.append([inp.inp_id, inp.bundle["storage"], inp.bundle["vCPU"]])
+        
+        sp_observations = {}
+        for i in range(self.NUM_SPs):
+            tasks = []
+            for ue in self.users:
+                if ue.current_sp == i:
+                    tasks.append(
+                        [
+                            ue.ue_id,
+                            ue.task.computing_req,
+                            ue.task.data_req,
+                            ue.task.latency_req,
+                        ]
+                    )
+
+            while len(tasks) < tasks_shape[0]:
+                tasks.append([0, 0, 0, 0])
+            sp_observations[i] = tasks
+
+        bundles = np.array(bundles, dtype=np.int32).reshape(bundles_shape)
+        sp_0 = np.array(sp_observations[0], dtype=np.int32).reshape(tasks_shape)
+        observation = {"bundles": bundles, "tasks": sp_0}
+
+        return observation, info

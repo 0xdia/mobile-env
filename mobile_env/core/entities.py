@@ -56,18 +56,21 @@ class UserEquipment:
         self.y: float = None
         self.stime: int = None
         self.extime: int = None
+        self.task = None
+        self.current_sp = None
 
     @property
     def point(self):
         return Point(int(self.x), int(self.y))
 
-    def generate_task(self):
-        self.task = Task(
-            self.ue_id,
-            random.randint(1, 16),
-            random.randint(1, 128),
-            random.randint(1, 200),
-        )
+    def generate_task(self, new=True):
+        if new or self.task == None:
+            self.task = Task(
+                self.ue_id,
+                random.randint(1, 16),
+                random.randint(1, 128),
+                random.randint(1, 200),
+            )
         return self.task
 
     def __str__(self):
@@ -84,7 +87,7 @@ class EdgeInfrastructureProvider:
         if self.bundle == None or new:
             self.bundle = {
                 "storage": random.randint(1, 1000),  # in GB
-                "cpu": random.randint(1, 416),  # in vCPU
+                "vCPU": random.randint(1, 416),  # in vCPU
             }
         return self.bundle
 
