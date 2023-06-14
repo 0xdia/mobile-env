@@ -49,7 +49,8 @@ class UserEquipment:
         self.ue_id = ue_id
         self.velocity: float = velocity
         self.snr_threshold = snr_tr
-        self.noise = noise
+        # self.noise = noise
+        self.noise = round(random.uniform((1e-9) - (1e-10), (1e-9) + (1e10)), 11)
         self.height = height
 
         self.x: float = None
