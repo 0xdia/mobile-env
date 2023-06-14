@@ -22,6 +22,7 @@ class MComVeryLarge(MComCore):
     def __init__(self, config={}, render_mode=None):
         # set unspecified parameters to default configuration
         config = deep_dict_merge(self.default_config(), config)
+        config["ue"]["velocity"] = 0
         num_of_bs = 13
         self.NUM_SPs = 10  # service providers
         self.NUM_InPs = 10  # edge infrastructure providers
@@ -40,15 +41,7 @@ class MComVeryLarge(MComCore):
             for _ in range(len(df))
         ]
 
-        inps = [EdgeInfrastructureProvider(_) for _ in range(self.NUM_InPs)]
-        # attribute edge servers to inps
-        for es in edge_servers:
-            random_inp = random.randint(0, self.NUM_InPs - 1)
-            es.inp = inps[random_inp]
-
-        # each edge server / inp offers a bundle
-        for es in edge_servers:
-            es.offer_bundle()
+        self.inps = [EdgeInfrastructureProvider(_) for _ in range(self.NUM_InPs)]
 
         # determining base station locations
         df = pandas.DataFrame(df).to_numpy()
@@ -73,29 +66,25 @@ class MComVeryLarge(MComCore):
         df = pandas.read_csv(
             "~/repos/mobile-env/mobile_env/scenarios/very_large/users-melbcbd-generated.csv"
         ).iloc[1:, 0:3]
-        ues = []
+        self.ues = []
         for _ in range(len(df)):
             ue = UserEquipment(_, **config["ue"])
             ue.x, ue.y = df.iat[_, 0], df.iat[_, 1]
-            ues.append(ue)
+            self.ues.append(ue)
 
-        sps = [
+        self.sps = [
             ServiceProvider(
                 _, random.randint(1000, 10000), 100, 50, random.randint(1, 5)
             )
             for _ in range(self.NUM_SPs)
         ]
 
-        # attribute users to service providers
-        for user in ues:
-            sps[random.randint(0, self.NUM_SPs - 1)].subscribe(user)
-
-        super().__init__(stations, edge_servers, ues, config, render_mode)
+        super().__init__(stations, edge_servers, self.ues, config, render_mode)
 
         # @TODO: cleaning needed, verify this class and the mother class
         self.stations = stations
         self.edge_servers = edge_servers
-        self.users = ues
+        self.users = self.ues
 
     def reset(self, *, seed=None, options=None):
         gym.Env.reset(self, seed=seed)
@@ -148,4 +137,55 @@ class MComVeryLarge(MComCore):
         # store latest monitored results in `info` dictionary
         info = {**info, **self.monitor.info()}
 
-        return self.handler.observation(self), info
+        # attribute edge servers to inps
+        for es in self.edge_servers:
+            random_inp = random.randint(0, self.NUM_InPs - 1)
+            es.inp = self.inps[random_inp]
+            self.inps[random_inp].edge_servers.append(es)
+
+        # each edge server / inp offers a bundle
+        for es in self.edge_servers:
+            es.offer_bundle()
+
+        # attribute users to service providers
+        for user in self.users:
+            random_sp = random.randint(0, self.NUM_SPs - 1)
+            self.sps[random_sp].subscribe(user)
+            user.current_sp = random_sp
+
+        # generate tasks on UEs
+        for ue in self.users:
+            ue.generate_task()
+
+        # return self.handler.observation(self), info
+
+        bundles_shape = (10, 3)
+        tasks_shape = (815, 4)
+
+        bundles = []
+        for inp in self.inps:
+            bundles.append([inp.inp_id, inp.bundle["storage"], inp.bundle["vCPU"]])
+        
+        sp_observations = {}
+        for i in range(self.NUM_SPs):
+            tasks = []
+            for ue in self.users:
+                if ue.current_sp == i:
+                    tasks.append(
+                        [
+                            ue.ue_id,
+                            ue.task.computing_req,
+                            ue.task.data_req,
+                            ue.task.latency_req,
+                        ]
+                    )
+
+            while len(tasks) < tasks_shape[0]:
+                tasks.append([0, 0, 0, 0])
+            sp_observations[i] = tasks
+
+        bundles = np.array(bundles, dtype=np.int32).reshape(bundles_shape)
+        sp_0 = np.array(sp_observations[0], dtype=np.int32).reshape(tasks_shape)
+        observation = {"bundles": bundles, "tasks": sp_0}
+
+        return observation, info

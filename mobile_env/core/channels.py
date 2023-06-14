@@ -7,6 +7,7 @@ from mobile_env.core.entities import BaseStation, UserEquipment
 
 EPSILON = 1e-16
 
+from geopy.distance import geodesic
 
 class Channel:
     def __init__(self, **kwargs):
@@ -126,7 +127,7 @@ class Channel:
 
 class OkumuraHata(Channel):
     def power_loss(self, bs: BaseStation, ue: UserEquipment):
-        distance = bs.point.distance(ue.point)
+        distance = geodesic(bs.coords, ue.coords).km
 
         ch = (
             0.8

@@ -3,7 +3,6 @@ from typing import List, Tuple
 
 from shapely.geometry import Point
 
-
 class BaseStation:
     def __init__(
         self,
@@ -20,10 +19,15 @@ class BaseStation:
         self.x, self.y = pos
         self.bw = bw  # in Hz
         self.frequency = freq  # in MHz
-        self.tx_power = tx  # in dBm
+        # self.tx_power = tx  # in dBm
+        self.tx_power = random.randint(30, 40)
         self.height = height  # in m
         self.edge_servers = []
 
+    @property
+    def coords(self):
+        return (self.x, self.y)
+    
     @property
     def point(self):
         return Point(int(self.x), int(self.y))
@@ -49,25 +53,33 @@ class UserEquipment:
         self.ue_id = ue_id
         self.velocity: float = velocity
         self.snr_threshold = snr_tr
-        self.noise = noise
+        # self.noise = noise
+        self.noise = round(random.uniform((1e-9) - (1e-10), (1e-9) + (1e10)), 11)
         self.height = height
 
         self.x: float = None
         self.y: float = None
         self.stime: int = None
         self.extime: int = None
+        self.task = None
+        self.current_sp = None
 
     @property
     def point(self):
         return Point(int(self.x), int(self.y))
 
-    def generate_task(self):
-        self.task = Task(
-            self.ue_id,
-            random.randint(1, 16),
-            random.randint(1, 128),
-            random.randint(1, 200),
-        )
+    @property
+    def coords(self):
+        return (self.x, self.y)
+    
+    def generate_task(self, new=True):
+        if new or self.task == None:
+            self.task = Task(
+                self.ue_id,
+                random.randint(1, 16),
+                random.randint(1, 128),
+                random.randint(1, 200),
+            )
         return self.task
 
     def __str__(self):
@@ -78,12 +90,13 @@ class EdgeInfrastructureProvider:
     def __init__(self, inp_id) -> None:
         self.inp_id = inp_id
         self.bundle = None
+        self.edge_servers = []
 
     def offer_bundle(self, new=False):
         if self.bundle == None or new:
             self.bundle = {
                 "storage": random.randint(1, 1000),  # in GB
-                "cpu": random.randint(1, 230),  # in vCPU
+                "vCPU": random.randint(1, 416),  # in vCPU
             }
         return self.bundle
 
