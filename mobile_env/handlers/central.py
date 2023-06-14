@@ -30,6 +30,9 @@ class MComCentralHandler(Handler):
             {
                 "bundles": spaces.Box(low=0, high=99999, shape=(10, 3), dtype=np.int32),
                 "tasks": spaces.Box(low=0, high=850, shape=(815, 4), dtype=np.int32),
+                "net-states": spaces.Box(
+                   low=0, high=850, shape=(815 * 124, 3), dtype=np.int32
+                ),
             }
         )
 
