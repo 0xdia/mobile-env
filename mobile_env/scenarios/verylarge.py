@@ -17,6 +17,7 @@ from mobile_env.core.entities import (
 )
 from mobile_env.core.util import deep_dict_merge
 
+np.set_printoptions(threshold=np.inf)
 
 class MComVeryLarge(MComCore):
     def __init__(self, config={}, render_mode=None):
@@ -158,14 +159,10 @@ class MComVeryLarge(MComCore):
             ue.generate_task()
 
         # return self.handler.observation(self), info
-        vals = []
-        for bs in self.stations:
-            for ue in self.users:
-                vals.append(self.channel.snr(bs, ue))
-        print(max(vals))
 
         bundles_shape = (10, 3)
         tasks_shape = (815, 4)
+        net_states_shape = (815 * 124, 3)
 
         bundles = []
         for inp in self.inps:
@@ -189,8 +186,19 @@ class MComVeryLarge(MComCore):
                 tasks.append([0, 0, 0, 0])
             sp_observations[i] = tasks
 
+        net_states = []
+        for ue in self.users:
+            if ue in self.sps[0].users:
+                print("yes")
+                for bs in self.stations:
+                    net_states.append([ue.ue_id, bs.bs_id, self.channel.snr(bs, ue)])
+        while len(net_states) < net_states_shape[0]:
+            net_states.append([0.0, 0.0, 0.0])
+
         bundles = np.array(bundles, dtype=np.int32).reshape(bundles_shape)
         sp_0 = np.array(sp_observations[0], dtype=np.int32).reshape(tasks_shape)
-        observation = {"bundles": bundles, "tasks": sp_0}
+        net_states = np.array(net_states, dtype=np.float64).reshape(net_states_shape)
+
+        observation = {"bundles": bundles, "tasks": sp_0, "net-states": net_states}
 
         return observation, info

@@ -21,7 +21,7 @@ class BaseStation:
         self.bw = bw  # in Hz
         self.frequency = freq  # in MHz
         # self.tx_power = tx  # in dBm
-        self.tx_power = random.randint(30, 40) + 30 # dB
+        self.tx_power = random.randint(30, 40)  # dB
         self.height = height  # in m
         self.edge_servers = []
 
@@ -54,9 +54,8 @@ class UserEquipment:
         self.ue_id = ue_id
         self.velocity: float = velocity
         self.snr_threshold = snr_tr
-        # self.noise = noise
-        self.noise = round(random.uniform((1e-9) - (1e-10), (1e-9) + (1e-10)), 11)
-        print(self.noise)
+        self.noise = noise
+        # self.noise = round(random.uniform((1e-9) - (1e-10), (1e-9) + (1e-10)), 11)
         self.height = height
 
         self.x: float = None

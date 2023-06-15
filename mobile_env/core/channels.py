@@ -130,11 +130,12 @@ class OkumuraHata(Channel):
     def power_loss(self, bs: BaseStation, ue: UserEquipment):
         distance = geodesic(bs.coords, ue.coords).km
 
-        ch = (
+        """ ch = (
             0.8
             + (1.1 * np.log10(bs.frequency) - 0.7) * ue.height
             - 1.56 * np.log10(bs.frequency)
-        )
+        ) """
+        ch = -4.97 + 2.3 * (np.log10(11.47 * ue.height) ** 2)
         tmp_1 = (
             69.55 - ch + 26.16 * np.log10(bs.frequency) - 13.82 * np.log10(bs.height)
         )
