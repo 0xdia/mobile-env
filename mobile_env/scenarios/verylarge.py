@@ -53,7 +53,7 @@ class MComVeryLarge(MComCore):
             BaseStation(
                 _,
                 (model.cluster_centers_[_, 0], model.cluster_centers_[_, 1]),
-                **config["bs"]
+                **config["bs"],
             )
             for _ in range(num_of_bs)
         ]
@@ -158,6 +158,11 @@ class MComVeryLarge(MComCore):
             ue.generate_task()
 
         # return self.handler.observation(self), info
+        vals = []
+        for bs in self.stations:
+            for ue in self.users:
+                vals.append(self.channel.snr(bs, ue))
+        print(max(vals))
 
         bundles_shape = (10, 3)
         tasks_shape = (815, 4)
@@ -165,7 +170,7 @@ class MComVeryLarge(MComCore):
         bundles = []
         for inp in self.inps:
             bundles.append([inp.inp_id, inp.bundle["storage"], inp.bundle["vCPU"]])
-        
+
         sp_observations = {}
         for i in range(self.NUM_SPs):
             tasks = []

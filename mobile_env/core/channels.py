@@ -9,6 +9,7 @@ EPSILON = 1e-16
 
 from geopy.distance import geodesic
 
+
 class Channel:
     def __init__(self, **kwargs):
         pass

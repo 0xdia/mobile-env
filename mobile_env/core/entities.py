@@ -3,6 +3,7 @@ from typing import List, Tuple
 
 from shapely.geometry import Point
 
+
 class BaseStation:
     def __init__(
         self,
@@ -20,14 +21,14 @@ class BaseStation:
         self.bw = bw  # in Hz
         self.frequency = freq  # in MHz
         # self.tx_power = tx  # in dBm
-        self.tx_power = random.randint(30, 40)
+        self.tx_power = random.randint(30, 40) + 30 # dB
         self.height = height  # in m
         self.edge_servers = []
 
     @property
     def coords(self):
         return (self.x, self.y)
-    
+
     @property
     def point(self):
         return Point(int(self.x), int(self.y))
@@ -54,7 +55,8 @@ class UserEquipment:
         self.velocity: float = velocity
         self.snr_threshold = snr_tr
         # self.noise = noise
-        self.noise = round(random.uniform((1e-9) - (1e-10), (1e-9) + (1e10)), 11)
+        self.noise = round(random.uniform((1e-9) - (1e-10), (1e-9) + (1e-10)), 11)
+        print(self.noise)
         self.height = height
 
         self.x: float = None
@@ -71,7 +73,7 @@ class UserEquipment:
     @property
     def coords(self):
         return (self.x, self.y)
-    
+
     def generate_task(self, new=True):
         if new or self.task == None:
             self.task = Task(
