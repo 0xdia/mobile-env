@@ -7,7 +7,7 @@ import pandas
 from numpy import unique
 from sklearn.cluster import KMeans
 
-from mobile_env.core.base import MComCore
+from mobile_env.core.base import MComCoreMA
 from mobile_env.core.entities import (
     BaseStation,
     EdgeServer,
@@ -17,9 +17,10 @@ from mobile_env.core.entities import (
 )
 from mobile_env.core.util import deep_dict_merge
 
-np.set_printoptions(threshold=np.inf)
+# np.set_printoptions(threshold=np.inf)
 
-class MComVeryLarge(MComCore):
+
+class MComVeryLarge(MComCoreMA):
     def __init__(self, config={}, render_mode=None):
         # set unspecified parameters to default configuration
         config = deep_dict_merge(self.default_config(), config)
@@ -62,7 +63,7 @@ class MComVeryLarge(MComCore):
         # attribute edge servers to base stations
         for i in range(len(edge_servers)):
             edge_servers[i].bs_id = clustring[i]
-            stations[clustring[i]].add_edge_server(edge_servers[i].es_id)
+            stations[clustring[i]].add_edge_server(edge_servers[i])
 
         df = pandas.read_csv(
             "~/repos/mobile-env/mobile_env/scenarios/very_large/users-melbcbd-generated.csv"
@@ -158,7 +159,7 @@ class MComVeryLarge(MComCore):
         for ue in self.users:
             ue.generate_task()
 
-        # return self.handler.observation(self), info
+        return self.handler.observation(self), info
 
         bundles_shape = (10, 3)
         tasks_shape = (815, 4)
