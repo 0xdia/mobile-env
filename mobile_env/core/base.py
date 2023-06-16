@@ -20,10 +20,10 @@ from mobile_env.core.movement import RandomWaypointMovement
 from mobile_env.core.schedules import ResourceFair
 from mobile_env.core.util import BS_SYMBOL, deep_dict_merge
 from mobile_env.core.utilities import BoundedLogUtility
-from mobile_env.handlers.central import MComCentralHandler
+from mobile_env.handlers.multi_agent import MComMAHandler
 
 
-class MComCore(gym.Env):
+class MComCoreMA(gym.Env):
     NOOP_ACTION = 0
     metadata = {"render_modes": ["rgb_array", "human"]}
 
@@ -63,11 +63,10 @@ class MComCore(gym.Env):
 
         # define sizes of base feature set that can or cannot be observed
         self.feature_sizes = {
-            "connections": self.NUM_STATIONS,
-            "snrs": self.NUM_STATIONS,
-            "utility": 1,
-            "bcast": self.NUM_STATIONS,
-            "stations_connected": self.NUM_STATIONS,
+            "budget": 1,
+            "bundles": self.NUM_InPs,
+            "tasks": self.NUM_USERS,
+            "net-states": self.NUM_STATIONS * self.NUM_EDGE_SERVERS,
         }
 
         # set object that handles calls to action(), reward() & observation()
@@ -123,7 +122,7 @@ class MComCore(gym.Env):
             "scheduler": ResourceFair,
             "movement": RandomWaypointMovement,
             "utility": BoundedLogUtility,
-            "handler": MComCentralHandler,
+            "handler": MComMAHandler,
             # default cell config
             "bs": {"bw": 9e6, "freq": 2500, "tx": 30, "height": 50},
             # default UE config

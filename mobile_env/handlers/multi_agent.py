@@ -8,16 +8,11 @@ from mobile_env.handlers.handler import Handler
 
 class MComMAHandler(Handler):
     features = [
-        "connections",
-        "snrs",
-        "utility",
-        "bcast",
-        "stations_connected",
+        "budget",
+        "bundles",
+        "tasks",
+        "net-states",
     ]
-
-    @classmethod
-    def ue_obs_size(cls, env) -> int:
-        return sum(env.feature_sizes[ftr] for ftr in cls.features)
 
     @classmethod
     def action_space(cls, env) -> gym.spaces.Dict:
@@ -30,13 +25,78 @@ class MComMAHandler(Handler):
 
     @classmethod
     def observation_space(cls, env) -> gym.spaces.Dict:
-        size = cls.ue_obs_size(env)
-        space = {
-            ue_id: gym.spaces.Box(low=-1, high=1, shape=(size,), dtype=np.float32)
-            for ue_id in env.users
-        }
+        """bundle_space = gym.spaces.Dict(
+            {
+                "inp_id": gym.spaces.Discrete(env.NUM_InPs + 1),
+                "bundle": gym.spaces.Dict(
+                    {
+                        "storage": gym.spaces.Discrete(100),
+                        "vCPU": gym.spaces.Discrete(10),
+                    }
+                ),
+            }
+        )
 
-        return gym.spaces.Dict(space)
+        task_space = gym.spaces.Dict(
+            {
+                "ue_id": gym.spaces.Discrete(env.NUM_USERS + 1),
+                "task": gym.spaces.Dict(
+                    {
+                        "compute": gym.spaces.Discrete(10),
+                        "data": gym.spaces.Discrete(100),
+                        "latency": gym.spaces.Discrete(100),
+                    }
+                ),
+            }
+        )
+
+        net_states_space = gym.spaces.Dict(
+            {
+                "ue_id": gym.spaces.Discrete(100),
+                "es_id": gym.spaces.Discrete(10),
+                "snr": gym.spaces.Box(low=0.0, high=1e6, shape=(1,), dtype=float),
+            }
+        )"""
+
+        bundles_space = gym.spaces.Box(
+            low=0, high=np.inf, shape=(env.NUM_InPs, 3), dtype=np.int32
+        )
+        tasks_space = gym.spaces.Box(
+            low=0, high=np.inf, shape=(env.NUM_USERS, 4), dtype=np.int32
+        )
+        net_states_space = gym.spaces.Box(
+            low=0,
+            high=np.inf,
+            shape=(env.NUM_USERS * env.NUM_EDGE_SERVERS, 3),
+            dtype=np.float64,
+        )
+
+
+        sp_space = gym.spaces.Dict(
+            {
+                "budget": gym.spaces.Box(low=0, high=np.inf, shape=(1,), dtype=np.int),
+                "bundles": bundles_space,
+                "tasks": tasks_space,
+                "net-states": net_states_space,
+            }
+        )
+
+        space = {
+            str(sp.sp_id): sp_space
+         for sp in env.sps }
+       
+        space = gym.spaces.Dict(space)
+
+        """ space = gym.spaces.Dict(
+            {
+                "budget": gym.spaces.Box(low=0, high=1e5, shape=(1,), dtype=int),
+                "bundles": [bundle_space] * env.NUM_InPs,
+                "tasks": [task_space] * env.NUM_USERS,
+                "net-states": [net_states_space] * env.NUM_USERS * env.NUM_EDGE_SERVERS,
+            }
+        ) """
+
+        return space
 
     @classmethod
     def reward(cls, env):
@@ -68,21 +128,51 @@ class MComMAHandler(Handler):
         """Select features for MA setting & flatten each UE's features."""
 
         # get features for currently active UEs
-        active = set([ue.ue_id for ue in env.active if not env.done])
+        """ active = set([ue.ue_id for ue in env.active if not env.done])
         features = env.features()
-        features = {ue_id: obs for ue_id, obs in features.items() if ue_id in active}
+        features = {ue_id: obs for ue_id, obs in features.items() if ue_id in active} """
 
         # select observations for multi-agent setting from base feature set
-        obs = {
+        """ obs = {
             ue_id: [obs_dict[key] for key in cls.features]
             for ue_id, obs_dict in features.items()
         }
-
+        """
         # flatten each UE's Dict observation to vector representation
-        obs = {
+        """ obs = {
             ue_id: np.concatenate([o for o in ue_obs]) for ue_id, ue_obs in obs.items()
+        } """
+
+        bundles = []
+        for inp in env.inps:
+            bundles.append([inp.inp_id, inp.bundle["storage"], inp.bundle["vCPU"]])
+
+        observations = {
+            str(sp.sp_id): {
+                "budget": {sp.Budget},
+                "bundles": bundles,
+                "tasks": [[0 for _ in range(4)] for _ in range(env.NUM_USERS)],
+                "net-states": [],
+            }
+            for sp in env.sps
         }
-        return obs
+
+        for ue in env.users:
+            observations[str(ue.current_sp)]["tasks"][ue.ue_id] = [
+                ue.ue_id,
+                ue.task.computing_req,
+                ue.task.data_req,
+                ue.task.latency_req,
+            ]
+
+        for ue in env.users:
+            for es in env.edge_servers:
+                observations[str(ue.current_sp)]["net-states"].append(
+                    [ue.ue_id, es.es_id, env.channel.snr(env.stations[es.bs_id], ue)]
+                )
+
+        print(observations['8'])
+        return observations
 
     @classmethod
     def action(cls, env, action: Dict[int, int]):

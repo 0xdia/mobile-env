@@ -33,8 +33,8 @@ class BaseStation:
     def point(self):
         return Point(int(self.x), int(self.y))
 
-    def add_edge_server(self, es_id: int):
-        self.edge_servers.append(es_id)
+    def add_edge_server(self, es):
+        self.edge_servers.append(es)
 
     def __str__(self):
         return f"BS: {self.bs_id}"

@@ -3,7 +3,7 @@ import mobile_env
 
 print("[*] Start very large scenario...")
 
-env = gym.make("mobile-verylarge-central-v0", render_mode="rgb_array")
+env = gym.make("mobile-verylarge-ma-v0", render_mode="rgb_array")
 
 obs, info = env.reset()
 
