@@ -92,6 +92,7 @@ class EdgeInfrastructureProvider:
         self.inp_id = inp_id
         self.bundle = None
         self.edge_servers = []
+        self.current_bids = []
 
     def offer_bundle(self, new=False):
         if self.bundle == None or new:
@@ -101,6 +102,13 @@ class EdgeInfrastructureProvider:
             }
         return self.bundle
 
+    def receive_bid(self, sp_id: int, bid: int) -> None:
+        self.current_bids.append((bid, sp_id))
+
+    def decide_bidding_winner(self) -> int:
+        winner = (1, 10)  # temp (sp_id, bid)
+        self.current_bids = []
+        return winner
 
 class EdgeServer:
     def __init__(self, es_id: int, inp, loc_x: float, loc_y: float) -> None:
@@ -136,10 +144,14 @@ class ServiceProvider:
         self.Budget += self.subscription_fee
         self.users.append(ue)
 
-    def bid(self):
-        # greedy
-        # a3c
-        pass
+    def action(self, observation):
+        bids = {}
+        for bundle in observation["bundles"]:
+            bids[bundle[0]] = 10
+        return bids
+
+    def pay(self, inp_id: int, payment: int) -> None:
+        self.Budget -= payment
 
 
 class Task:

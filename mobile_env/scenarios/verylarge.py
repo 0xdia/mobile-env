@@ -1,5 +1,6 @@
 import random
 from collections import defaultdict
+from typing import Dict
 
 import gymnasium as gym
 import numpy as np
@@ -10,10 +11,10 @@ from sklearn.cluster import KMeans
 from mobile_env.core.base import MComCoreMA
 from mobile_env.core.entities import (
     BaseStation,
+    EdgeInfrastructureProvider,
     EdgeServer,
     ServiceProvider,
     UserEquipment,
-    EdgeInfrastructureProvider,
 )
 from mobile_env.core.util import deep_dict_merge
 
@@ -135,9 +136,9 @@ class MComVeryLarge(MComCoreMA):
         self.handler.check(self)
 
         # info
-        info = self.handler.info(self)
+        #info = self.handler.info(self)
         # store latest monitored results in `info` dictionary
-        info = {**info, **self.monitor.info()}
+        #info = {**info, **self.monitor.info()}
 
         # attribute edge servers to inps
         for es in self.edge_servers:
@@ -159,47 +160,98 @@ class MComVeryLarge(MComCoreMA):
         for ue in self.users:
             ue.generate_task()
 
-        return self.handler.observation(self), info
+        return self.handler.observation(self), {}
 
-        bundles_shape = (10, 3)
-        tasks_shape = (815, 4)
-        net_states_shape = (815 * 124, 3)
+    def step(self, actions: Dict[int, int]):
+        assert not self.time_is_up, "step() called on terminated episode"
 
-        bundles = []
+        # release established connections that moved e.g. out-of-range
+        self.update_connections()
+
+        # TODO: add penalties for changing connections?
+        for sp_id, action in actions.items():
+            self.apply_action(action, sp_id)
+
+        # InPs decides bidding war winners
         for inp in self.inps:
-            bundles.append([inp.inp_id, inp.bundle["storage"], inp.bundle["vCPU"]])
+            winner = inp.decide_bidding_winner()
+            self.sps[winner[0]].pay(inp.inp_id, winner[1])
 
-        sp_observations = {}
-        for i in range(self.NUM_SPs):
-            tasks = []
-            for ue in self.users:
-                if ue.current_sp == i:
-                    tasks.append(
-                        [
-                            ue.ue_id,
-                            ue.task.computing_req,
-                            ue.task.data_req,
-                            ue.task.latency_req,
-                        ]
-                    )
+        # update connections' data rates after re-scheduling
+        self.datarates = {}
+        for bs in self.stations:
+            drates = self.station_allocation(bs)
+            self.datarates.update(drates)
 
-            while len(tasks) < tasks_shape[0]:
-                tasks.append([0, 0, 0, 0])
-            sp_observations[i] = tasks
+        # update macro (aggregated) data rates for each UE
+        self.macro = self.macro_datarates(self.datarates)
 
-        net_states = []
-        for ue in self.users:
-            if ue in self.sps[0].users:
-                print("yes")
-                for bs in self.stations:
-                    net_states.append([ue.ue_id, bs.bs_id, self.channel.snr(bs, ue)])
-        while len(net_states) < net_states_shape[0]:
-            net_states.append([0.0, 0.0, 0.0])
+        # compute utilities from UEs' data rates & log its mean value
+        self.utilities = {
+            ue: self.utility.utility(self.macro[ue]) for ue in self.active
+        }
 
-        bundles = np.array(bundles, dtype=np.int32).reshape(bundles_shape)
-        sp_0 = np.array(sp_observations[0], dtype=np.int32).reshape(tasks_shape)
-        net_states = np.array(net_states, dtype=np.float64).reshape(net_states_shape)
+        # scale utilities to range [-1, 1] before computing rewards
+        self.utilities = {
+            ue: self.utility.scale(util) for ue, util in self.utilities.items()
+        }
 
-        observation = {"bundles": bundles, "tasks": sp_0, "net-states": net_states}
+        rewards = self.handler.reward(self)
 
-        return observation, info
+        # evaluate metrics and update tracked metrics given the core simulation
+        self.monitor.update(self)
+
+        # move user equipments around; update positions of UEs
+        for ue in self.active:
+            ue.x, ue.y = self.movement.move(ue)
+
+        # terminate existing connections for exiting UEs
+        leaving = set([ue for ue in self.active if ue.extime <= self.time])
+        for bs, ues in self.connections.items():
+            self.connections[bs] = ues - leaving
+
+        # update list of active UEs & add those that begin to request service
+        self.active = sorted(
+            [
+                ue
+                for ue in self.users
+                if ue.extime > self.time and ue.stime <= self.time
+            ],
+            key=lambda ue: ue.ue_id,
+        )
+
+        # update the data rate of each (BS, UE) connection after movement
+        for bs in self.stations:
+            drates = self.station_allocation(bs)
+            self.datarates.update(drates)
+
+        # update internal time of environment
+        self.time += 1
+
+        # check whether episode is done & close the environment
+        if self.time_is_up and self.window:
+            self.close()
+
+        # do not invoke next step on policies before at least one UE is active
+        if not self.active and not self.time_is_up:
+            return self.step({})
+
+        # compute observations for next step and information
+        # methods are defined by handler according to strategy pattern
+        # NOTE: compute observations after proceeding in time (may skip ahead)
+        observation = self.handler.observation(self)
+        
+        # info = self.handler.info(self)
+        # store latest monitored results in `info` dictionary
+        # info = {**info, **self.monitor.info()}
+
+        # there is not natural episode termination, just limited time
+        # terminated is always False and truncated is True once time is up
+        terminated = False
+        truncated = self.time_is_up
+
+        return observation, rewards, terminated, truncated, {}
+
+    def apply_action(self, action: Dict[int, int], sp_id: int) -> None:
+        for inp, bid in action.items():
+            self.inps[inp].receive_bid(sp_id, bid)
