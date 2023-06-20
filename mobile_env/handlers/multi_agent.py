@@ -16,12 +16,10 @@ class MComMAHandler(Handler):
 
     @classmethod
     def action_space(cls, env) -> gym.spaces.Dict:
-        return gym.spaces.Dict(
-            {
-                ue.ue_id: gym.spaces.Discrete(env.NUM_STATIONS + 1)
-                for ue in env.users.values()
-            }
+        sp_action_space = gym.spaces.Dict(
+            {inp.inp_id: gym.spaces.Discrete(10001) for inp in env.inps}
         )
+        return gym.spaces.Dict({sp.sp_id: sp_action_space for sp in env.sps})
 
     @classmethod
     def observation_space(cls, env) -> gym.spaces.Dict:
@@ -38,7 +36,6 @@ class MComMAHandler(Handler):
             dtype=np.float64,
         )
 
-
         sp_space = gym.spaces.Dict(
             {
                 "budget": gym.spaces.Box(low=0, high=np.inf, shape=(1,), dtype=np.int),
@@ -48,10 +45,8 @@ class MComMAHandler(Handler):
             }
         )
 
-        space = {
-            str(sp.sp_id): sp_space
-         for sp in env.sps }
-       
+        space = {sp.sp_id: sp_space for sp in env.sps}
+
         space = gym.spaces.Dict(space)
         return space
 
@@ -100,13 +95,12 @@ class MComMAHandler(Handler):
             ue_id: np.concatenate([o for o in ue_obs]) for ue_id, ue_obs in obs.items()
         } """
 
-
         bundles = []
         for inp in env.inps:
             bundles.append([inp.inp_id, inp.bundle["storage"], inp.bundle["vCPU"]])
 
         observations = {
-            str(sp.sp_id): {
+            sp.sp_id: {
                 "budget": {sp.Budget},
                 "bundles": bundles,
                 "tasks": [[0 for _ in range(4)] for _ in range(env.NUM_USERS)],
@@ -116,7 +110,7 @@ class MComMAHandler(Handler):
         }
 
         for ue in env.users:
-            observations[str(ue.current_sp)]["tasks"][ue.ue_id] = [
+            observations[ue.current_sp]["tasks"][ue.ue_id] = [
                 ue.ue_id,
                 ue.task.computing_req,
                 ue.task.data_req,
@@ -125,10 +119,11 @@ class MComMAHandler(Handler):
 
         for ue in env.users:
             for es in env.edge_servers:
-                observations[str(ue.current_sp)]["net-states"].append(
+                observations[ue.current_sp]["net-states"].append(
                     [ue.ue_id, es.es_id, env.channel.snr(env.stations[es.bs_id], ue)]
                 )
 
+        print(observations[1]["budget"])
         return observations
 
     @classmethod
