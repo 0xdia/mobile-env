@@ -110,6 +110,7 @@ class EdgeInfrastructureProvider:
         self.current_bids = []
         return winner
 
+
 class EdgeServer:
     def __init__(self, es_id: int, inp, loc_x: float, loc_y: float) -> None:
         self.es_id = es_id

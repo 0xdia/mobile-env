@@ -40,9 +40,10 @@ def deep_dict_merge(dest: Dict, source: Dict):
 
     return dest
 
+
 def min_max_snr(env, observations):
     """
-        Returns the coordinates of the UEs and BSs with the min and max values of SNR
+    Returns the coordinates of the UEs and BSs with the min and max values of SNR
     """
     mn, mx = 1.0, 0.0
     umncord, umxcord = None, None
@@ -55,8 +56,12 @@ def min_max_snr(env, observations):
                     env.users[int(obs["net-states"][_][0])].y,
                 )
                 bmncord = (
-                    env.stations[env.edge_servers[int(obs["net-states"][_][1])].bs_id].x,
-                    env.stations[env.edge_servers[int(obs["net-states"][_][1])].bs_id].y,
+                    env.stations[
+                        env.edge_servers[int(obs["net-states"][_][1])].bs_id
+                    ].x,
+                    env.stations[
+                        env.edge_servers[int(obs["net-states"][_][1])].bs_id
+                    ].y,
                 )
                 mn = obs["net-states"][_][2]
             if mx < obs["net-states"][_][2]:
@@ -65,8 +70,12 @@ def min_max_snr(env, observations):
                     env.users[int(obs["net-states"][_][0])].y,
                 )
                 bmxcord = (
-                    env.stations[env.edge_servers[int(obs["net-states"][_][1])].bs_id].x,
-                    env.stations[env.edge_servers[int(obs["net-states"][_][1])].bs_id].y,
+                    env.stations[
+                        env.edge_servers[int(obs["net-states"][_][1])].bs_id
+                    ].x,
+                    env.stations[
+                        env.edge_servers[int(obs["net-states"][_][1])].bs_id
+                    ].y,
                 )
                 mx = obs["net-states"][_][2]
 

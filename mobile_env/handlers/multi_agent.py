@@ -7,12 +7,13 @@ from mobile_env.handlers.handler import Handler
 
 from collections import OrderedDict
 
+
 class MComMAHandler(Handler):
     features = [
         "budget",
         "bundles",
         "tasks",
-        "net-states",
+        "net-states",  # https://support.zyxel.eu/hc/en-us/articles/4406391493778-5G-signal-quality-parameters
     ]
 
     @classmethod
@@ -79,15 +80,17 @@ class MComMAHandler(Handler):
         for inp in env.inps:
             bundles.append([inp.inp_id, inp.bundle["storage"], inp.bundle["vCPU"]])
 
-        observations = OrderedDict({
-            sp.sp_id: {
-                "budget": sp.Budget,
-                "bundles": np.array(bundles),
-                "tasks": [[0 for _ in range(4)] for _ in range(env.NUM_USERS)],
-                "net-states": [],
+        observations = OrderedDict(
+            {
+                sp.sp_id: {
+                    "budget": sp.Budget,
+                    "bundles": np.array(bundles),
+                    "tasks": [[0 for _ in range(4)] for _ in range(env.NUM_USERS)],
+                    "net-states": [],
+                }
+                for sp in env.sps
             }
-            for sp in env.sps
-        })
+        )
 
         for ue in env.users:
             observations[ue.current_sp]["tasks"][ue.ue_id] = [
@@ -104,7 +107,9 @@ class MComMAHandler(Handler):
                 )
 
         for sp in observations:
-            observations[sp]["tasks"] = np.array(observations[sp]["tasks"], dtype=np.int32)
+            observations[sp]["tasks"] = np.array(
+                observations[sp]["tasks"], dtype=np.int32
+            )
             observations[sp]["net-states"] = np.array(observations[sp]["net-states"])
 
         return observations

@@ -18,7 +18,7 @@ from mobile_env.core.entities import (
 )
 from mobile_env.core.util import deep_dict_merge
 
-# np.set_printoptions(threshold=np.inf)
+np.set_printoptions(threshold=np.inf)
 
 
 class MComVeryLarge(MComCoreMA):
@@ -136,9 +136,9 @@ class MComVeryLarge(MComCoreMA):
         self.handler.check(self)
 
         # info
-        #info = self.handler.info(self)
+        # info = self.handler.info(self)
         # store latest monitored results in `info` dictionary
-        #info = {**info, **self.monitor.info()}
+        # info = {**info, **self.monitor.info()}
 
         # attribute edge servers to inps
         for es in self.edge_servers:
@@ -239,7 +239,7 @@ class MComVeryLarge(MComCoreMA):
         # compute observations for next step and information
         # NOTE: compute observations after proceeding in time (may skip ahead)
         observation = self.handler.observation(self)
-        
+
         # info = self.handler.info(self)
         # store latest monitored results in `info` dictionary
         # info = {**info, **self.monitor.info()}
