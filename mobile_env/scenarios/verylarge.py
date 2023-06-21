@@ -187,15 +187,15 @@ class MComVeryLarge(MComCoreMA):
         self.macro = self.macro_datarates(self.datarates)
 
         # compute utilities from UEs' data rates & log its mean value
-        self.utilities = {
+        """ self.utilities = {
             ue: self.utility.utility(self.macro[ue]) for ue in self.active
-        }
+        } """
 
         # scale utilities to range [-1, 1] before computing rewards
-        self.utilities = {
+        """ self.utilities = {
             ue: self.utility.scale(util) for ue, util in self.utilities.items()
         }
-
+        """
         rewards = self.handler.reward(self)
 
         # evaluate metrics and update tracked metrics given the core simulation
@@ -237,7 +237,6 @@ class MComVeryLarge(MComCoreMA):
             return self.step({})
 
         # compute observations for next step and information
-        # methods are defined by handler according to strategy pattern
         # NOTE: compute observations after proceeding in time (may skip ahead)
         observation = self.handler.observation(self)
         

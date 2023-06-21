@@ -52,27 +52,7 @@ class MComMAHandler(Handler):
 
     @classmethod
     def reward(cls, env):
-        """UE's reward is their utility and the avg. utility of nearby BSs."""
-        # compute average utility of UEs for each BS
-        # set to lower bound if no UEs are connected
-        bs_utilities = env.station_utilities()
-
-        def ue_utility(ue):
-            """Aggregates UE's own and nearby BSs' utility."""
-            # ch eck what BS-UE connections are possible
-            connectable = env.available_connections(ue)
-
-            # utilities are broadcasted, i.e., aggregate utilities of BSs
-            # that are in range of the UE
-            ngbr_utility = sum(bs_utilities[bs] for bs in connectable)
-
-            # calculate rewards as average weighted by
-            # the number of each BSs' connections
-            ngbr_counts = sum(len(env.connections[bs]) for bs in connectable)
-
-            return (ngbr_utility + env.utilities[ue]) / (ngbr_counts + 1)
-
-        rewards = {ue.ue_id: ue_utility(ue) for ue in env.active}
+        rewards = {}
         return rewards
 
     @classmethod
