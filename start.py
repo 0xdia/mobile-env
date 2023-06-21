@@ -4,9 +4,8 @@ import mobile_env
 env = gym.make("mobile-verylarge-ma-v0", render_mode="rgb_array")
 
 observations, info = env.reset()
-done = False
 
-counter = 0
+done = False
 while not done:
     actions = {}
     for sp in env.sps:
@@ -14,5 +13,5 @@ while not done:
     observation, rewards, terminated, truncated, info = env.step(
         actions
     )  # check step params
+    print(rewards)
     done = terminated
-    counter += 1

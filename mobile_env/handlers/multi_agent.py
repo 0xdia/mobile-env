@@ -5,6 +5,7 @@ import numpy as np
 
 from mobile_env.handlers.handler import Handler
 
+from collections import OrderedDict
 
 class MComMAHandler(Handler):
     features = [
@@ -38,21 +39,20 @@ class MComMAHandler(Handler):
 
         sp_space = gym.spaces.Dict(
             {
-                "budget": gym.spaces.Box(low=0, high=np.inf, shape=(1,), dtype=np.int),
+                "budget": gym.spaces.Discrete(100001),
                 "bundles": bundles_space,
                 "tasks": tasks_space,
                 "net-states": net_states_space,
             }
         )
 
-        space = {sp.sp_id: sp_space for sp in env.sps}
-
-        space = gym.spaces.Dict(space)
+        space = gym.spaces.Dict({sp.sp_id: sp_space for sp in env.sps})
+        cls.space = space
         return space
 
     @classmethod
     def reward(cls, env):
-        rewards = {}
+        rewards = {sp.sp_id: 1 for sp in env.sps}
         return rewards
 
     @classmethod
@@ -79,15 +79,15 @@ class MComMAHandler(Handler):
         for inp in env.inps:
             bundles.append([inp.inp_id, inp.bundle["storage"], inp.bundle["vCPU"]])
 
-        observations = {
+        observations = OrderedDict({
             sp.sp_id: {
-                "budget": {sp.Budget},
-                "bundles": bundles,
+                "budget": sp.Budget,
+                "bundles": np.array(bundles),
                 "tasks": [[0 for _ in range(4)] for _ in range(env.NUM_USERS)],
                 "net-states": [],
             }
             for sp in env.sps
-        }
+        })
 
         for ue in env.users:
             observations[ue.current_sp]["tasks"][ue.ue_id] = [
@@ -103,7 +103,10 @@ class MComMAHandler(Handler):
                     [ue.ue_id, es.es_id, env.channel.snr(env.stations[es.bs_id], ue)]
                 )
 
-        print(observations[1]["budget"])
+        for sp in observations:
+            observations[sp]["tasks"] = np.array(observations[sp]["tasks"], dtype=np.int32)
+            observations[sp]["net-states"] = np.array(observations[sp]["net-states"])
+
         return observations
 
     @classmethod
