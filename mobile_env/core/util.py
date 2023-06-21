@@ -39,3 +39,35 @@ def deep_dict_merge(dest: Dict, source: Dict):
             dest[key] = value
 
     return dest
+
+def min_max_snr(env, observations):
+    """
+        Returns the coordinates of the UEs and BSs with the min and max values of SNR
+    """
+    mn, mx = 1.0, 0.0
+    umncord, umxcord = None, None
+    bmncord, bmxcord = None, None
+    for sp, obs in observations.items():
+        for _ in range(len(obs["net-states"])):
+            if mn > obs["net-states"][_][2]:
+                umncord = (
+                    env.users[int(obs["net-states"][_][0])].x,
+                    env.users[int(obs["net-states"][_][0])].y,
+                )
+                bmncord = (
+                    env.stations[env.edge_servers[int(obs["net-states"][_][1])].bs_id].x,
+                    env.stations[env.edge_servers[int(obs["net-states"][_][1])].bs_id].y,
+                )
+                mn = obs["net-states"][_][2]
+            if mx < obs["net-states"][_][2]:
+                umxcord = (
+                    env.users[int(obs["net-states"][_][0])].x,
+                    env.users[int(obs["net-states"][_][0])].y,
+                )
+                bmxcord = (
+                    env.stations[env.edge_servers[int(obs["net-states"][_][1])].bs_id].x,
+                    env.stations[env.edge_servers[int(obs["net-states"][_][1])].bs_id].y,
+                )
+                mx = obs["net-states"][_][2]
+
+    return (umncord, bmncord, mn), (umxcord, bmxcord, mx)
