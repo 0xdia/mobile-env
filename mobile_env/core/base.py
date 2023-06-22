@@ -128,7 +128,7 @@ class MComCoreMA(gym.Env):
             # default UE config
             "ue": {
                 "velocity": 1.5,
-                "snr_tr": 2e-8,
+                "snr_tr": 13,  # TODO: check this
                 "noise": 1e-9,
                 "height": 1.5,
             },

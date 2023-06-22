@@ -109,6 +109,7 @@ class EdgeInfrastructureProvider:
         winner = (1, 10)  # temp (sp_id, bid)
         self.current_bids = []
         return winner
+    
 
 class EdgeServer:
     def __init__(self, es_id: int, inp, loc_x: float, loc_y: float) -> None:

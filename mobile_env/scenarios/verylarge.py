@@ -18,7 +18,7 @@ from mobile_env.core.entities import (
 )
 from mobile_env.core.util import deep_dict_merge
 
-# np.set_printoptions(threshold=np.inf)
+np.set_printoptions(threshold=np.inf)
 
 
 class MComVeryLarge(MComCoreMA):
@@ -136,9 +136,10 @@ class MComVeryLarge(MComCoreMA):
         self.handler.check(self)
 
         # info
-        #info = self.handler.info(self)
+
+        # info = self.handler.info(self)
         # store latest monitored results in `info` dictionary
-        #info = {**info, **self.monitor.info()}
+        # info = {**info, **self.monitor.info()}
 
         # attribute edge servers to inps
         for es in self.edge_servers:
@@ -187,17 +188,15 @@ class MComVeryLarge(MComCoreMA):
         self.macro = self.macro_datarates(self.datarates)
 
         # compute utilities from UEs' data rates & log its mean value
-        self.utilities = {
+        """ self.utilities = {
             ue: self.utility.utility(self.macro[ue]) for ue in self.active
-        }
+        } """
 
         # scale utilities to range [-1, 1] before computing rewards
-        self.utilities = {
+        """ self.utilities = {
             ue: self.utility.scale(util) for ue, util in self.utilities.items()
         }
-
-        # compute rewards from utility for each UE
-        # method is defined by handler according to strategy pattern
+        """
         rewards = self.handler.reward(self)
 
         # evaluate metrics and update tracked metrics given the core simulation
@@ -239,10 +238,9 @@ class MComVeryLarge(MComCoreMA):
             return self.step({})
 
         # compute observations for next step and information
-        # methods are defined by handler according to strategy pattern
         # NOTE: compute observations after proceeding in time (may skip ahead)
         observation = self.handler.observation(self)
-        
+
         # info = self.handler.info(self)
         # store latest monitored results in `info` dictionary
         # info = {**info, **self.monitor.info()}
