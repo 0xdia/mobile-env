@@ -176,7 +176,7 @@ class MComVeryLarge(MComCoreMA):
         # InPs decides bidding war winners
         for inp in self.inps:
             winner = inp.decide_bidding_winner()
-            self.sps[winner[0]].pay(inp.inp_id, winner[1])
+            self.sps[winner[1]].pay(inp.inp_id, winner[0])
 
         # update connections' data rates after re-scheduling
         self.datarates = {}

@@ -106,9 +106,15 @@ class EdgeInfrastructureProvider:
         self.current_bids.append((bid, sp_id))
 
     def decide_bidding_winner(self) -> int:
-        winner = (1, 10)  # temp (sp_id, bid)
+        self.current_bids.sort(reverse=True)
+        highest = [self.current_bids[0]]
+        for i in range(1, len(self.current_bids)):
+            if highest[-1][0] == self.current_bids[i][0]:
+                highest.append(self.current_bids[i])
+            else:
+                break
         self.current_bids = []
-        return winner
+        return highest[random.randint(0, len(highest)-1)] # temp
     
 
 class EdgeServer:
@@ -148,7 +154,7 @@ class ServiceProvider:
     def action(self, observation):
         bids = {}
         for bundle in observation["bundles"]:
-            bids[bundle[0]] = 10
+            bids[bundle[0]] = random.randint(1, 100)
         return bids
 
     def pay(self, inp_id: int, payment: int) -> None:
