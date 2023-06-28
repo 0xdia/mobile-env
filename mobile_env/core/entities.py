@@ -114,8 +114,8 @@ class EdgeInfrastructureProvider:
             else:
                 break
         self.current_bids = []
-        return highest[random.randint(0, len(highest)-1)] # temp
-    
+        return highest[random.randint(0, len(highest) - 1)]  # temp
+
 
 class EdgeServer:
     def __init__(self, es_id: int, inp, loc_x: float, loc_y: float) -> None:
@@ -151,11 +151,23 @@ class ServiceProvider:
         self.Budget += self.subscription_fee
         self.users.append(ue)
 
-    def action(self, observation):
+    def random_bidding(self, observation):
+        self.virtual_balance = self.Budget
+        remaining = len(observation["bundles"])
+        bundles = [*range(len(observation["bundles"]))]
         bids = {}
-        for bundle in observation["bundles"]:
-            bids[bundle[0]] = random.randint(1, 100)
+        while remaining:
+            chosen_bundle = random.randint(0, remaining - 1)
+            bids[bundles[chosen_bundle]] = random.randint(
+                0, min(150, self.virtual_balance)
+            )  # 250 is an arbitrary choice
+            self.virtual_balance -= bids[bundles[chosen_bundle]]
+            bundles.pop(chosen_bundle)
+            remaining -= 1
         return bids
+
+    def action(self, observation):
+        return self.random_bidding(observation)
 
     def pay(self, inp_id: int, payment: int) -> None:
         self.Budget -= payment
