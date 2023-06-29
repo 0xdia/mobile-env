@@ -247,7 +247,7 @@ class MComVeryLarge(MComCoreMA):
 
         # there is not natural episode termination, just limited time
         # terminated is always False and truncated is True once time is up
-        terminated = False
+        terminated = self.all_sps_bankrupt()
         truncated = self.time_is_up
 
         return observation, rewards, terminated, truncated, {}
@@ -255,3 +255,9 @@ class MComVeryLarge(MComCoreMA):
     def apply_action(self, action: Dict[int, int], sp_id: int) -> None:
         for inp, bid in action.items():
             self.inps[inp].receive_bid(sp_id, bid)
+
+    def all_sps_bankrupt(self):
+        for sp in self.sps:
+            if sp.Budget != 0:
+                return False
+        return True
