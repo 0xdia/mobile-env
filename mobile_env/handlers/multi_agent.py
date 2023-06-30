@@ -53,8 +53,11 @@ class MComMAHandler(Handler):
 
     @classmethod
     def reward(cls, env):
-        rewards = {sp.sp_id: 1 for sp in env.sps}
-        return rewards
+        reward = {}
+        for sp in env.sps:
+            reward[sp.sp_id] = sp.last_spending
+            sp.last_spending = 0
+        return reward
 
     @classmethod
     def observation(cls, env) -> Dict[int, np.ndarray]:
@@ -79,7 +82,6 @@ class MComMAHandler(Handler):
         bundles = []
         for inp in env.inps:
             bundles.append([inp.inp_id, inp.bundle["storage"], inp.bundle["vCPU"]])
-
 
         observations = OrderedDict(
             {

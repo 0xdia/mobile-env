@@ -146,6 +146,7 @@ class ServiceProvider:
         self.R = R  # maximum number of bundle offers to consider for a timeslot
         self.subscription_fee = subscription_fee
         self.users = []
+        self.last_spending = 0
 
     def subscribe(self, ue):
         self.Budget += self.subscription_fee
@@ -171,6 +172,7 @@ class ServiceProvider:
 
     def pay(self, inp_id: int, payment: int) -> None:
         self.Budget -= payment
+        self.last_spending += payment
 
 
 class Task:
