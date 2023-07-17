@@ -30,7 +30,7 @@ class MComVeryLarge(MComCoreMA):
         config = deep_dict_merge(self.default_config(), config)
         config["ue"]["velocity"] = 0
         num_of_bs = 13
-        self.NUM_SPs = 5  # service providers
+        self.NUM_SPs = 1  # service providers
         self.NUM_InPs = 10  # edge infrastructure providers
         self.iteration = 0
         self.writer = SummaryWriter()
@@ -261,6 +261,7 @@ class MComVeryLarge(MComCoreMA):
             self.iteration,
         )
         self.iteration += 1
+        print(self.iteration)
 
         return observation, rewards, terminated, truncated, {}
 
