@@ -153,16 +153,16 @@ class ServiceProvider:
         self.users.append(ue)
 
     def random_bidding(self, observation):
-        self.virtual_balance = self.Budget
+        virtual_balance = self.Budget
         remaining = len(observation["bundles"])
         bundles = [*range(len(observation["bundles"]))]
         bids = {}
         while remaining:
             chosen_bundle = random.randint(0, remaining - 1)
             bids[bundles[chosen_bundle]] = random.randint(
-                0, min(150, self.virtual_balance)
-            )  # 250 is an arbitrary choice
-            self.virtual_balance -= bids[bundles[chosen_bundle]]
+                0, max(0, min(50, virtual_balance))
+            )  # 50 is an arbitrary choice
+            virtual_balance -= bids[bundles[chosen_bundle]]
             bundles.pop(chosen_bundle)
             remaining -= 1
         return bids
@@ -171,6 +171,7 @@ class ServiceProvider:
         return self.random_bidding(observation)
 
     def pay(self, inp_id: int, payment: int) -> None:
+        # assert self.Budget >= payment, "Budget inferior than payment"
         self.Budget -= payment
         self.last_spending += payment
 

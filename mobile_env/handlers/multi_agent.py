@@ -18,10 +18,10 @@ class MComMAHandler(Handler):
 
     @classmethod
     def action_space(cls, env) -> gym.spaces.Dict:
-        sp_action_space = gym.spaces.Dict(
-            {inp.inp_id: gym.spaces.Discrete(10001) for inp in env.inps}
+        sp_action_space = gym.spaces.Box(
+            low=0, high=10001, shape=(env.NUM_InPs, 1), dtype=np.int32
         )
-        return gym.spaces.Dict({sp.sp_id: sp_action_space for sp in env.sps})
+        return sp_action_space
 
     @classmethod
     def observation_space(cls, env) -> gym.spaces.Dict:
@@ -47,9 +47,9 @@ class MComMAHandler(Handler):
             }
         )
 
-        space = gym.spaces.Dict({sp.sp_id: sp_space for sp in env.sps})
-        cls.space = space
-        return space
+        # space = gym.spaces.Dict({sp.sp_id: sp_space for sp in env.sps})
+        cls.space = sp_space
+        return sp_space
 
     @classmethod
     def reward(cls, env):
@@ -60,25 +60,7 @@ class MComMAHandler(Handler):
         return reward
 
     @classmethod
-    def observation(cls, env) -> Dict[int, np.ndarray]:
-        """Select features for MA setting & flatten each UE's features."""
-
-        # get features for currently active UEs
-        """ active = set([ue.ue_id for ue in env.active if not env.done])
-        features = env.features()
-        features = {ue_id: obs for ue_id, obs in features.items() if ue_id in active} """
-
-        # select observations for multi-agent setting from base feature set
-        """ obs = {
-            ue_id: [obs_dict[key] for key in cls.features]
-            for ue_id, obs_dict in features.items()
-        }
-        """
-        # flatten each UE's Dict observation to vector representation
-        """ obs = {
-            ue_id: np.concatenate([o for o in ue_obs]) for ue_id, ue_obs in obs.items()
-        } """
-
+    def observation(cls, env):
         bundles = []
         for inp in env.inps:
             bundles.append([inp.inp_id, inp.bundle["storage"], inp.bundle["vCPU"]])
@@ -115,7 +97,10 @@ class MComMAHandler(Handler):
             )
             observations[sp]["net-states"] = np.array(observations[sp]["net-states"])
 
-        return observations
+        external_agent_observation = observations[-1].copy()
+        observations.pop(-1)
+        env.internal_agents_observations = observations.copy()
+        return external_agent_observation
 
     @classmethod
     def action(cls, env, action: Dict[int, int]):

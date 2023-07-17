@@ -7,18 +7,11 @@ env = gym.make(
 )
 
 
-observations, info = env.reset()
-
-# print(mobile_env.core.util.min_max_snr(env, observations))
-
+observation, info = env.reset()
 done = False
 while not done:
-    actions = {}
-    for sp in env.sps:
-        actions[sp.sp_id] = sp.action(observations[sp.sp_id])
-    observations, rewards, terminated, truncated, info = env.step(
-        actions
-    ) 
+    action = env.sps[0].action(observation)
+    observation, reward, terminated, truncated, info = env.step(action)
     done = terminated
 
 env.close()

@@ -30,10 +30,11 @@ class MComVeryLarge(MComCoreMA):
         config = deep_dict_merge(self.default_config(), config)
         config["ue"]["velocity"] = 0
         num_of_bs = 13
-        self.NUM_SPs = 1  # service providers
+        self.NUM_SPs = 5  # service providers
         self.NUM_InPs = 10  # edge infrastructure providers
         self.iteration = 0
         self.writer = SummaryWriter()
+        self.internal_agents_observations = None
 
         # @DONE: cluster edge server arounf base stations according to their locations
         df = pandas.read_csv(
@@ -81,10 +82,8 @@ class MComVeryLarge(MComCoreMA):
             self.ues.append(ue)
 
         self.sps = [
-            ServiceProvider(
-                _, random.randint(1000, 10000), 100, 50, random.randint(1, 5)
-            )
-            for _ in range(self.NUM_SPs)
+            ServiceProvider(_, random.randint(100, 200), 100, 50, random.randint(1, 5))
+            for _ in range(-1, self.NUM_SPs - 1)
         ]
 
         super().__init__(stations, edge_servers, self.ues, config, render_mode)
@@ -158,7 +157,7 @@ class MComVeryLarge(MComCoreMA):
 
         # attribute users to service providers
         for user in self.users:
-            random_sp = random.randint(0, self.NUM_SPs - 1)
+            random_sp = random.randint(-1, self.NUM_SPs - 2)  # -1 for the RL model
             self.sps[random_sp].subscribe(user)
             user.current_sp = random_sp
 
@@ -168,15 +167,25 @@ class MComVeryLarge(MComCoreMA):
 
         return self.handler.observation(self), {}
 
-    def step(self, actions: Dict[int, int]):
+    def step(self, action):
         assert not self.time_is_up, "step() called on terminated episode"
 
         # release established connections that moved e.g. out-of-range
         self.update_connections()
 
-        # TODO: add penalties for changing connections?
-        for sp_id, action in actions.items():
-            self.apply_action(action, sp_id)
+        # external agent/model action
+        self.apply_action(action, -1)
+
+        # internal agents actions
+        for sp in self.sps:
+            if sp.sp_id == -1:
+                continue
+            action = sp.action(self.internal_agents_observations[sp.sp_id])
+            self.apply_action(action, sp.sp_id)
+            sum = 0
+            for k, v in action.items():
+                sum += v
+            assert sp.Budget >= sum, print("nooo ")
 
         # InPs decides bidding war winners
         for inp in self.inps:
@@ -261,17 +270,16 @@ class MComVeryLarge(MComCoreMA):
             self.iteration,
         )
         self.iteration += 1
-        print(self.iteration)
 
         return observation, rewards, terminated, truncated, {}
 
     def apply_action(self, action: Dict[int, int], sp_id: int) -> None:
-        for inp, bid in action.items():
-            self.inps[inp].receive_bid(sp_id, bid)
+        for inp in range(self.NUM_InPs):
+            self.inps[inp].receive_bid(sp_id, action[inp])
 
     def all_sps_bankrupt(self):
         for sp in self.sps:
-            if sp.Budget != 0:
+            if sp.Budget > 0:
                 return False
         return True
 
