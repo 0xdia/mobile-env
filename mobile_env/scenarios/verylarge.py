@@ -7,6 +7,8 @@ import numpy as np
 import pandas
 from numpy import unique
 from sklearn.cluster import KMeans
+from torch.utils.tensorboard import SummaryWriter
+
 
 from mobile_env.core.base import MComCoreMA
 from mobile_env.core.entities import (
@@ -17,6 +19,7 @@ from mobile_env.core.entities import (
     UserEquipment,
 )
 from mobile_env.core.util import deep_dict_merge
+
 
 np.set_printoptions(threshold=np.inf)
 
@@ -29,6 +32,8 @@ class MComVeryLarge(MComCoreMA):
         num_of_bs = 13
         self.NUM_SPs = 5  # service providers
         self.NUM_InPs = 10  # edge infrastructure providers
+        self.iteration = 0
+        self.writer = SummaryWriter()
 
         # @DONE: cluster edge server arounf base stations according to their locations
         df = pandas.read_csv(
@@ -250,6 +255,13 @@ class MComVeryLarge(MComCoreMA):
         terminated = self.all_sps_bankrupt()
         truncated = self.time_is_up
 
+        self.writer.add_scalars(
+            "randomness",
+            {"sp_" + str(sp.sp_id): sp.Budget for sp in self.sps},
+            self.iteration,
+        )
+        self.iteration += 1
+
         return observation, rewards, terminated, truncated, {}
 
     def apply_action(self, action: Dict[int, int], sp_id: int) -> None:
@@ -261,3 +273,6 @@ class MComVeryLarge(MComCoreMA):
             if sp.Budget != 0:
                 return False
         return True
+
+    def close(self):
+        self.writer.close()
