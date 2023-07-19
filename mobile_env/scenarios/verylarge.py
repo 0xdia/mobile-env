@@ -30,7 +30,7 @@ class MComVeryLarge(MComCoreMA):
         config = deep_dict_merge(self.default_config(), config)
         config["ue"]["velocity"] = 0
         num_of_bs = 13
-        self.NUM_SPs = 2  # service providers
+        self.NUM_SPs = 3  # service providers
         self.NUM_InPs = 5  # edge infrastructure providers
         self.iteration = 0
         self.writer = SummaryWriter()
@@ -94,6 +94,7 @@ class MComVeryLarge(MComCoreMA):
         self.users = self.ues
 
     def reset(self, *, seed=None, options=None):
+        print("/////***/////// RESET CALLED...")
         gym.Env.reset(self, seed=seed)
         # reset time
         self.time = 0.0
@@ -168,6 +169,7 @@ class MComVeryLarge(MComCoreMA):
         return self.handler.observation(self), {}
 
     def step(self, action):
+        print("step called... action = ", action)
         assert not self.time_is_up, "step() called on terminated episode"
 
         # release established connections that moved e.g. out-of-range
@@ -190,7 +192,7 @@ class MComVeryLarge(MComCoreMA):
         # InPs decides bidding war winners
         for inp in self.inps:
             winner = inp.decide_bidding_winner()
-            self.sps[winner[1]+1].pay(inp.inp_id, winner[0])
+            self.sps[winner[1] + 1].pay(inp.inp_id, winner[0])
 
         # update connections' data rates after re-scheduling
         self.datarates = {}
@@ -211,7 +213,7 @@ class MComVeryLarge(MComCoreMA):
             ue: self.utility.scale(util) for ue, util in self.utilities.items()
         }
         """
-        rewards = self.handler.reward(self)
+        reward = self.handler.reward(self)
 
         # evaluate metrics and update tracked metrics given the core simulation
         self.monitor.update(self)
@@ -265,13 +267,18 @@ class MComVeryLarge(MComCoreMA):
         truncated = self.time_is_up
 
         self.writer.add_scalars(
-            "randomness",
-            {"sp_" + str(sp.sp_id): sp.Budget for sp in self.sps},
+            "Budgets",
+            {f"sp[{sp.sp_id}]": sp.Budget for sp in self.sps},
+            self.iteration,
+        )
+        self.writer.add_scalars(
+            "Rewards",
+            {f"sp[{sp.sp_id}]": self.handler.rewards[sp.sp_id] for sp in self.sps},
             self.iteration,
         )
         self.iteration += 1
 
-        return observation, rewards, terminated, truncated, {}
+        return observation, reward, terminated, truncated, {}
 
     def apply_action(self, action: Dict[int, int], sp_id: int) -> None:
         for inp in range(self.NUM_InPs):
