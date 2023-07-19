@@ -147,6 +147,7 @@ class ServiceProvider:
         self.subscription_fee = subscription_fee
         self.users = []
         self.last_spending = 0
+        self.bids_won = 0
 
     def subscribe(self, ue):
         return
@@ -174,6 +175,7 @@ class ServiceProvider:
     def pay(self, inp_id: int, payment: int) -> None:
         # assert self.Budget >= payment, "Budget inferior than payment"
         self.Budget -= payment
+        self.bids_won += 1
         self.last_spending += payment
 
 
