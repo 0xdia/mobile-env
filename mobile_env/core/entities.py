@@ -139,7 +139,7 @@ class EdgeServer:
 
 
 class ServiceProvider:
-    def __init__(self, sp_id: int, budget: float, U: int, R: int, subscription_fee):
+    def __init__(self, sp_id: int, budget: int, U: int, R: int, subscription_fee):
         self.sp_id = sp_id
         self.Budget = budget
         self.U = U  # maximum number of user to consider at a timestamp
@@ -149,6 +149,7 @@ class ServiceProvider:
         self.last_spending = 0
 
     def subscribe(self, ue):
+        return
         self.Budget += self.subscription_fee
         self.users.append(ue)
 

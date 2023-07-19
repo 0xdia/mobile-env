@@ -30,8 +30,8 @@ class MComVeryLarge(MComCoreMA):
         config = deep_dict_merge(self.default_config(), config)
         config["ue"]["velocity"] = 0
         num_of_bs = 13
-        self.NUM_SPs = 5  # service providers
-        self.NUM_InPs = 10  # edge infrastructure providers
+        self.NUM_SPs = 2  # service providers
+        self.NUM_InPs = 5  # edge infrastructure providers
         self.iteration = 0
         self.writer = SummaryWriter()
         self.internal_agents_observations = None
@@ -82,7 +82,7 @@ class MComVeryLarge(MComCoreMA):
             self.ues.append(ue)
 
         self.sps = [
-            ServiceProvider(_, random.randint(100, 200), 100, 50, random.randint(1, 5))
+            ServiceProvider(_, random.randint(200, 400), 100, 50, random.randint(1, 5))
             for _ in range(-1, self.NUM_SPs - 1)
         ]
 
@@ -190,7 +190,7 @@ class MComVeryLarge(MComCoreMA):
         # InPs decides bidding war winners
         for inp in self.inps:
             winner = inp.decide_bidding_winner()
-            self.sps[winner[1]].pay(inp.inp_id, winner[0])
+            self.sps[winner[1]+1].pay(inp.inp_id, winner[0])
 
         # update connections' data rates after re-scheduling
         self.datarates = {}
