@@ -108,7 +108,7 @@ class MComCoreMA(gym.Env):
         """Set default configuration of environment dynamics."""
         # set up configuration of environment
         width, height = 200, 200
-        ep_time = 100
+        ep_time = 25
         config = {
             # environment parameters:
             "width": width,
