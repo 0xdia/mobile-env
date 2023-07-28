@@ -4,7 +4,7 @@ from stable_baselines3 import A2C, PPO
 
 
 env = gym.make(
-    "mobile-verylarge-ma-v0", render_mode="rgb_array", disable_env_checker=False
+    "mobile-verylarge-ma-v0", render_mode="rgb_array", disable_env_checker=True
 )
 
 model = PPO(
@@ -26,7 +26,7 @@ model = PPO(
     sde_sample_freq=-1,
     target_kl=None,
     stats_window_size=100,
-    tensorboard_log="./runs/",
+    tensorboard_log=None,
     policy_kwargs=None,
     verbose=0,
     seed=None,

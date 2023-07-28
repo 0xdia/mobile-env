@@ -82,7 +82,7 @@ class MComVeryLarge(MComCoreMA):
             self.ues.append(ue)
 
         self.sps = [
-            ServiceProvider(_, random.randint(200, 400), 100, 50, random.randint(1, 5))
+            ServiceProvider(_, 700, 100, 50, random.randint(1, 5))
             for _ in range(-1, self.NUM_SPs - 1)
         ]
 
@@ -94,7 +94,6 @@ class MComVeryLarge(MComCoreMA):
         self.users = self.ues
 
     def reset(self, *, seed=None, options=None):
-        print("/////***/////// RESET CALLED...")
         gym.Env.reset(self, seed=seed)
         # reset time
         self.time = 0.0
@@ -140,12 +139,6 @@ class MComVeryLarge(MComCoreMA):
         # although the number of UEs changes
         self.handler.check(self)
 
-        # info
-
-        # info = self.handler.info(self)
-        # store latest monitored results in `info` dictionary
-        # info = {**info, **self.monitor.info()}
-
         # attribute edge servers to inps
         for es in self.edge_servers:
             random_inp = random.randint(0, self.NUM_InPs - 1)
@@ -166,10 +159,25 @@ class MComVeryLarge(MComCoreMA):
         for ue in self.users:
             ue.generate_task()
 
+        # reset budgets for sp
+        for sp in self.sps:
+            sp.Budget = 700
+
+        self.writer.add_scalars(
+            "Budgets",
+            {f"sp[{sp.sp_id}]": sp.Budget for sp in self.sps},
+            self.iteration,
+        )
+        self.writer.add_scalars(
+            "Rewards",
+            {f"sp[{sp.sp_id}]": 0 for sp in self.sps},
+            self.iteration,
+        )
+        self.iteration += 1
+
         return self.handler.observation(self), {}
 
     def step(self, action):
-        print("step called... action = ", action)
         assert not self.time_is_up, "step() called on terminated episode"
 
         # release established connections that moved e.g. out-of-range
@@ -203,16 +211,6 @@ class MComVeryLarge(MComCoreMA):
         # update macro (aggregated) data rates for each UE
         self.macro = self.macro_datarates(self.datarates)
 
-        # compute utilities from UEs' data rates & log its mean value
-        """ self.utilities = {
-            ue: self.utility.utility(self.macro[ue]) for ue in self.active
-        } """
-
-        # scale utilities to range [-1, 1] before computing rewards
-        """ self.utilities = {
-            ue: self.utility.scale(util) for ue, util in self.utilities.items()
-        }
-        """
         reward = self.handler.reward(self)
 
         # evaluate metrics and update tracked metrics given the core simulation
@@ -257,10 +255,6 @@ class MComVeryLarge(MComCoreMA):
         # NOTE: compute observations after proceeding in time (may skip ahead)
         observation = self.handler.observation(self)
 
-        # info = self.handler.info(self)
-        # store latest monitored results in `info` dictionary
-        # info = {**info, **self.monitor.info()}
-
         # there is not natural episode termination, just limited time
         # terminated is always False and truncated is True once time is up
         terminated = self.all_sps_bankrupt()
@@ -277,7 +271,6 @@ class MComVeryLarge(MComCoreMA):
             self.iteration,
         )
         self.iteration += 1
-
         return observation, reward, terminated, truncated, {}
 
     def apply_action(self, action: Dict[int, int], sp_id: int) -> None:
