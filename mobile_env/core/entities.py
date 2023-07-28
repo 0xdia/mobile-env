@@ -148,6 +148,7 @@ class ServiceProvider:
         self.users = []
         self.last_spending = 0
         self.bids_won = 0
+        self.unsatisfied_bids = 0
 
     def subscribe(self, ue):
         return
@@ -162,7 +163,7 @@ class ServiceProvider:
         while remaining:
             chosen_bundle = random.randint(0, remaining - 1)
             bids[bundles[chosen_bundle]] = random.randint(
-                0, max(0, min(50, virtual_balance))
+                0, max(0, min(200, virtual_balance))
             )  # 50 is an arbitrary choice
             virtual_balance -= bids[bundles[chosen_bundle]]
             bundles.pop(chosen_bundle)
@@ -174,8 +175,12 @@ class ServiceProvider:
 
     def pay(self, inp_id: int, payment: int) -> None:
         # assert self.Budget >= payment, "Budget inferior than payment"
-        self.Budget -= payment
+        # TODO: check how does the sp choose among the ressources it gains
         self.bids_won += 1
+        if self.Budget < payment:
+            self.unsatisfied_bids += 1
+            return
+        self.Budget -= payment
         self.last_spending += payment
 
 

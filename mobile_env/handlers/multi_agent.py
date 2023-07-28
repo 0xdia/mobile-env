@@ -18,8 +18,8 @@ class MComMAHandler(Handler):
 
     @classmethod
     def action_space(cls, env):
-        sp_action_space = gym.spaces.Box(
-            low=0, high=10001, shape=(env.NUM_InPs,), dtype=np.int32
+        sp_action_space = gym.spaces.MultiDiscrete(
+            np.array([1000] * env.NUM_InPs), seed=42
         )
         return sp_action_space
 
@@ -47,7 +47,6 @@ class MComMAHandler(Handler):
             }
         )
 
-        # space = gym.spaces.Dict({sp.sp_id: sp_space for sp in env.sps})
         cls.space = sp_space
         return sp_space
 
@@ -55,8 +54,10 @@ class MComMAHandler(Handler):
     def reward(cls, env):
         cls.rewards = {}
         for sp in env.sps:
-            cls.rewards[sp.sp_id] = 0.1 * sp.bids_won / env.NUM_SPs - 0.9 * sp.last_spending / 400
-            sp.bids_won = sp.last_spending = 0
+            cls.rewards[sp.sp_id] = (
+                -100 * sp.unsatisfied_bids / env.NUM_SPs - 0.9 * sp.last_spending / 1000
+            )
+            sp.unsatisfied_bids = sp.bids_won = sp.last_spending = 0
         external_agent_reward = cls.rewards[-1]
         return external_agent_reward
 
@@ -93,12 +94,6 @@ class MComMAHandler(Handler):
                 ue.task.data_req,
                 ue.task.latency_req,
             ]
-
-        """ for ue in env.users:
-            for es in env.edge_servers:
-                observations[ue.current_sp]["net-states"].append(
-                    [ue.ue_id, es.es_id, env.channel.snr(env.stations[es.bs_id], ue)]
-                ) """
 
         for sp in observations:
             observations[sp]["tasks"] = np.array(
